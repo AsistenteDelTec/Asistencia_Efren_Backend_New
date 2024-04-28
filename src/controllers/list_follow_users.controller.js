@@ -13,7 +13,8 @@ const create = async (req, res) => {
 
 const get = async (req,res) => {
     try{
-        const response = await service.find();
+        const {id} = req.params;
+        const response = await service.find(id);
         res.json(response);
     } catch (error){
         res.status(500).send({success: false, message: error.message});
@@ -30,6 +31,7 @@ const getById = async (req, res) => {
 
     }
 }
+
 
 const update = async (req,res) => {
     try {
@@ -53,5 +55,5 @@ const _delete = async (req,res) => {
 }
 
 module.exports = {
-    create,get,getById,update,_delete
+    create,get,getById,update,_delete,getUserList
 };

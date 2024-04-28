@@ -4,5 +4,5 @@ const followController = require('../controllers/list_follow_users.controller');
 
 router
     .post('/', followController.create)
-    .get('/', followController.get);
+    .get('/:id', followController.get);
 module.exports = router;

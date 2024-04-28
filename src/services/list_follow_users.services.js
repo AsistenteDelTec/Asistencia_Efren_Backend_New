@@ -1,33 +1,30 @@
 const {models} = require('../libs/sequelize');
 
-class UsersService {
+class ListFollowUsersService {
     constructor () {}
 
     async create(data) {
+
+        console.log(data)
         
         const datos = {
-            username: data.body.username,
-            fullname: data.body.fullname,
-            password: data.body.password,
-            email: data.body.email,
-            date_joined: data.body.date_joined,
-            verified: data.body.verified,
-            user_role: data.body.user_role
+            id_user: data.body.id_user,
+            id_user_follow: data.body.id_user_follow,
         };
-        
-        const res = await models.Users.create(datos);
-        console.log(res.Users);
+        console.log(datos)
+        const res = await models.ListFollowUsers.create(datos);
+        console.log(res.ListFollowUsers);
         return res;
     }
     
     async find() {
-        const res = await models.Users.findAll();
+        const res = await models.ListFollowUsers.findAll();
         return res;
     }
     
 
     async findOne(id){
-        const res = await models.Users.findByPk(id);
+        const res = await models.ListFollowUsers.findByPk(id);
         return res;
     }
 
@@ -44,4 +41,4 @@ class UsersService {
     }
 }
 
-module.exports = UsersService;
+module.exports = ListFollowUsersService;

@@ -21,18 +21,6 @@ const get = async (req,res) => {
     }
 }
 
-const getById = async (req, res) => {
-    try {
-        const {id} = req.params;
-        const response = await service.findOne(id);
-        res.json(response);
-    }catch(error){
-        res.status(500).send({success: false, message: error.message});
-
-    }
-}
-
-
 const update = async (req,res) => {
     try {
         const {id} = req.params;
@@ -47,7 +35,8 @@ const update = async (req,res) => {
 const _delete = async (req,res) => {
     try{
         const {id} = req.params;
-        const response = await service.delete(id);
+        const {id2} = req.params;
+        const response = await service.delete(id,id2);
         res.json(response);
     }catch(error){
         res.status(500).send({success:false,message:error.message});
@@ -55,5 +44,5 @@ const _delete = async (req,res) => {
 }
 
 module.exports = {
-    create,get,getById,update,_delete,getUserList
+    create,get,update,_delete
 };

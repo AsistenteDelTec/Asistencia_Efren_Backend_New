@@ -5,16 +5,11 @@ class ListFollowUsersService {
     constructor () {}
 
     async create(data) {
-
-        console.log(data)
-        
         const datos = {
             id_user: data.body.id_user,
             id_user_follow: data.body.id_user_follow,
         };
-        console.log(datos)
         const res = await models.ListFollowUsers.create(datos);
-        console.log(res.ListFollowUsers);
         return res;
     }
 

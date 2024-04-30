@@ -1,6 +1,7 @@
 const ListFollowUsersService = require('../services/list_follow_users.services');
-
+const {models} = require('../libs/sequelize');
 const service = new ListFollowUsersService();
+
 
 const create = async (req, res) => {
     try{

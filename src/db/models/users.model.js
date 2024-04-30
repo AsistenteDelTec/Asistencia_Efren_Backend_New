@@ -3,6 +3,7 @@ const { Model, DataTypes, Sequelize} = require('sequelize');
 const USERS_TABLE = 'users'
 
 class Users extends Model {
+
     static config(sequelize){
         return {
             sequelize,

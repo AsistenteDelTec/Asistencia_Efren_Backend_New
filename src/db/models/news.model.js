@@ -1,5 +1,5 @@
 const { Model, DataTypes } = require('sequelize');
-const sequelize = require('../libs/sequelize'); // Asegúrate de tener la configuración correcta para Sequelize
+const sequelize = require('../../libs/sequelize');  // Asegúrate de tener la configuración correcta para Sequelize
 
 const NEWS_TABLE = 'news';
 
@@ -61,7 +61,5 @@ const NewsSchema = {
         }
     }
 };
-
-News.init(NewsSchema, News.config(sequelize));
 
 module.exports = { News, NewsSchema };

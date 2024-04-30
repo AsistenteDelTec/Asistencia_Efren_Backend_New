@@ -19,6 +19,13 @@ class ListFollowUsersService {
             where: {
                 id_user:id,
             },
+            include: [
+                {
+                    model: models.User,
+                    as: 'userFollow',
+                    attributes: ['id', 'name', 'email'] // Atributos del usuario que quieres obtener
+                }
+            ]
           });
         return res;
     }

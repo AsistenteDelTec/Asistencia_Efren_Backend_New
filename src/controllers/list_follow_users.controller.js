@@ -15,6 +15,7 @@ const get = async (req,res) => {
     try{
         const {id} = req.params;
         const response = await service.find(id);
+        console.log(response);
         res.json(response);
     } catch (error){
         res.status(500).send({success: false, message: error.message});

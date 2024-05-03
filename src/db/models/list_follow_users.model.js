@@ -4,11 +4,6 @@ const FOLLOW_TABLE = 'list_follow_users'
 
 class ListFollowUsers extends Model {
 
-    static associate(models) {
-        this.belongsTo(models.Users, { foreignKey: 'id_user', as: 'user' });
-        this.belongsTo(models.Users, { foreignKey: 'id_user_follow', as: 'userFollow' });
-    }
-
     static config(sequelize) {
         return {
             sequelize,
@@ -17,6 +12,12 @@ class ListFollowUsers extends Model {
             timestamps: false
         };
     }
+
+    static associate(models) {
+        this.belongsTo(models.Users, { foreignKey: 'id_user', as: 'user' });
+        this.belongsTo(models.Users, { foreignKey: 'id_user_follow', as: 'followedUser' });
+    }
+
 }
 
 const ListFollowUsersSchema = {

@@ -17,13 +17,21 @@ class RelationshipUserModel {
     }
     
     async find(id) {
-        const res = await models.RelationshipUserModel.findAll({
-            where: {
-                id_user:id,
-            },
-        });
-        console.log(res);
-        return res;
+        try {
+            const user = await models.Users.findByPk(id, {
+                include: [
+                    {
+                        model: models.Models,
+                        as: 'models' // Utiliza el alias 'models' que configuraste en la asociación
+                    }
+                ]
+            });
+
+            return { user};
+        } catch (error) {
+            console.error('Error fetching user and models:', error);
+            throw error;
+        }
     }
 
     async findOne(id,id2){

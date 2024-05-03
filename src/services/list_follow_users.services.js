@@ -15,12 +15,18 @@ class ListFollowUsersService {
 
     async find(id) {
         console.log(id)
-        const res = await models.ListFollowUsers.findAll({
+        const relations = await models.ListFollowUsers.findAll({
             where: {
-                id_user:id,
-            },
-          });
-        return res;
+                id_user: id
+            }
+        });
+    
+        const relatedUsers = await Promise.all(relations.map(async (relation) => {
+            const user = await models.Users.findByPk(relation.id_user_follow);
+            return user;
+        }));
+    
+        return relatedUsers;
     }
     
     async findOne(id,id2){

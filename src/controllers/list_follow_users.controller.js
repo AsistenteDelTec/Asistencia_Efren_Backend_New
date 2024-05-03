@@ -1,6 +1,7 @@
 const ListFollowUsersService = require('../services/list_follow_users.services');
-
+const {models} = require('../libs/sequelize');
 const service = new ListFollowUsersService();
+
 
 const create = async (req, res) => {
     try{
@@ -15,6 +16,7 @@ const get = async (req,res) => {
     try{
         const {id} = req.params;
         const response = await service.find(id);
+        console.log(response);
         res.json(response);
     } catch (error){
         res.status(500).send({success: false, message: error.message});

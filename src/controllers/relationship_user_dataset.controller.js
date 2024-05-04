@@ -1,6 +1,6 @@
-const RelationshipUserModel = require('../services/relationship_user_model.services');
+const RelationshipUserDataset = require('../services/relationship_user_datset.service');
 
-const service = new RelationshipUserModel();
+const service = new RelationshipUserDataset();
 
 const create = async (req, res) => {
     try{

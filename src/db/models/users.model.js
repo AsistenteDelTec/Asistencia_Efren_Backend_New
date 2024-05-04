@@ -12,10 +12,6 @@ class Users extends Model {
             timestamps: false
         }
     }
-
-    static associate(models) {
-        this.belongsToMany(models.relationship_user_model, { through: models.relationship_user_model, foreignKey: 'id_user' });
-    }
 }
 
 const UsersSchema = {

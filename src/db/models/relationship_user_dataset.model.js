@@ -1,20 +1,19 @@
 const { Model, DataTypes, Sequelize } = require('sequelize');
 
-const RELATIONSHIP_MODEL_TABLE = 'relationship_user_model'
+const RELATIONSHIP_MODEL_TABLE = 'relationship_user_dataset';
 
-class RelationshipUserModel extends Model {
+class RelationshipUserDataset extends Model {
     static config(sequelize) {
         return {
             sequelize,
             tableName: RELATIONSHIP_MODEL_TABLE,
-            modelName: 'RelationshipUserModel',
+            modelName: 'RelationshipUserDataset',
             timestamps: false
         };
     }
-
 }
 
-const RelationshipUserModelSchema = {
+const RelationshipUserDatasetSchema = {
     id_user: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -23,14 +22,14 @@ const RelationshipUserModelSchema = {
             key: 'id'
         }
     },
-    id_model: {
+    id_dataset: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         references: {
-            model: 'Models', // Nombre del modelo de la tabla de modelos
+            model: 'Datasets', // Nombre del modelo de la tabla de datasets
             key: 'id'
         }
     }
-}
+};
 
-module.exports = {RelationshipUserModel,RelationshipUserModelSchema };
+module.exports = { RelationshipUserDataset, RelationshipUserDatasetSchema };

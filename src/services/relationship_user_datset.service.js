@@ -1,17 +1,17 @@
 const {models} = require('../libs/sequelize');
 const { Op } = require('sequelize');
 
-class RelationshipUserModel {
+class RelationshipUserDataset {
     constructor () {}
 
     async create(data) {
         
         const datos = {
             id_user: data.body.id_user,
-            id_model: data.body.id_model,
+            id_dataset: data.body.id_dataset,
         };
         
-        const res = await models.RelationshipUserModel.create(datos);
+        const res = await models.RelationshipUserDataset.create(datos);
         console.log(res);
         return res;
     }
@@ -21,8 +21,8 @@ class RelationshipUserModel {
             const user = await models.Users.findByPk(id, {
                 include: [
                     {
-                        model: models.Models,
-                        as: 'models' // Utiliza el alias 'models' que configuraste en la asociación
+                        model: models.Datasets,
+                        as: 'datasets' // Utiliza el alias 'models' que configuraste en la asociación
                     }
                 ]
             });
@@ -34,9 +34,9 @@ class RelationshipUserModel {
     }
 
     async findOne(id,id2){
-        const res = await models.RelationshipUserModel.findOne({
+        const res = await models.RelationshipUserDataset.findOne({
             where: {
-                [Op.and]: [{ id_user: id }, { id_model: id2 }],
+                [Op.and]: [{ id_user: id }, { id_dataset: id2 }],
             }
         });
         return res;
@@ -49,4 +49,4 @@ class RelationshipUserModel {
     }
 }
 
-module.exports = RelationshipUserModel;
+module.exports = RelationshipUserDataset;

@@ -12,10 +12,6 @@ class Models extends Model {
             timestamps: false
         }
     }
-
-    static associate(models) {
-        this.hasMany(models.RelationshipUserModel, { foreignKey: 'id_model', as: 'relationships' });
-    }
 }
 
 const ModelsSchema = {

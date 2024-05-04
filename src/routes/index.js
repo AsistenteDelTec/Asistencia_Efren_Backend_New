@@ -5,6 +5,8 @@ const modelsRouter = require('./models.router');
 const newsRouter = require('./news.router');
 const datasetsRouter = require('./datasets.router');
 const relationshipModel = require('./relationship_user_model.router')
+const relationshipDataset = require('./relationship_user_dataset.router')
+const relationshipNew = require('./relationship_user_new.router')
 
 function routerApi(app) {
     const router = express.Router();
@@ -15,6 +17,8 @@ function routerApi(app) {
     router.use('/news', newsRouter);
     router.use('/datasets', datasetsRouter);
     router.use('/relationshipModel', relationshipModel);
+    router.use('/relationshipDataset', relationshipDataset);
+    router.use('/relationshipNew', relationshipNew);
 }
 
 module.exports = routerApi;

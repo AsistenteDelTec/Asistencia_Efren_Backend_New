@@ -7,6 +7,8 @@ const datasetsRouter = require('./datasets.router');
 const relationshipModel = require('./relationship_user_model.router')
 const relationshipDataset = require('./relationship_user_dataset.router')
 const relationshipNew = require('./relationship_user_new.router')
+const favModel = require('./list_fav_model.router')
+const favDataset = require('./list_fav_dataset.router')
 
 function routerApi(app) {
     const router = express.Router();
@@ -19,6 +21,8 @@ function routerApi(app) {
     router.use('/relationshipModel', relationshipModel);
     router.use('/relationshipDataset', relationshipDataset);
     router.use('/relationshipNew', relationshipNew);
+    router.use('/favModel', favModel);
+    router.use('/favDataset', favDataset);
 }
 
 module.exports = routerApi;

@@ -1,39 +1,37 @@
-const { Model, DataTypes, Sequelize} = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
 
-const FOLLOW_TABLE = 'list_follow_users'
+const FAVORITE_DATASETS_TABLE = 'list_fav_datasets';
 
-class ListFollowUsers extends Model {
-
+class ListFavDatasets extends Model {
     static config(sequelize) {
         return {
             sequelize,
-            tableName: FOLLOW_TABLE,
-            modelName: 'ListFollowUsers',
+            tableName: FAVORITE_DATASETS_TABLE,
+            modelName: 'ListFavDatasets',
             timestamps: false
         };
     }
-
 }
 
-const ListFollowUsersSchema = {
+const ListFavDatasetsSchema = {
     id_user: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         allowNull: false,
         references: {
-            model: 'Users',
+            model: 'users',
             key: 'id'
         }
     },
-    id_user_follow: {
+    id_dataset: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         allowNull: false,
         references: {
-            model: 'Users',
+            model: 'datasets',
             key: 'id'
         }
     }
 };
 
-module.exports = { ListFollowUsers, ListFollowUsersSchema };
+module.exports = { ListFavDatasets, ListFavDatasetsSchema };

@@ -1,39 +1,37 @@
 const { Model, DataTypes, Sequelize} = require('sequelize');
 
-const FOLLOW_TABLE = 'list_follow_users'
+const RELATIONSHIP_MODEL_TABLE = 'relationship_user_new';
 
-class ListFollowUsers extends Model {
-
+class RelationshipUserNew extends Model {
     static config(sequelize) {
         return {
             sequelize,
-            tableName: FOLLOW_TABLE,
-            modelName: 'ListFollowUsers',
+            tableName: RELATIONSHIP_MODEL_TABLE,
+            modelName: 'RelationshipUserNew',
             timestamps: false
         };
     }
-
 }
 
-const ListFollowUsersSchema = {
+const RelationshipUserNewSchema = {
     id_user: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         allowNull: false,
         references: {
-            model: 'Users',
+            model: 'users', // Nombre del modelo de la tabla de usuarios
             key: 'id'
         }
     },
-    id_user_follow: {
+    id_new: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         allowNull: false,
         references: {
-            model: 'Users',
+            model: 'news', // Nombre del modelo de la tabla de noticias
             key: 'id'
         }
     }
 };
 
-module.exports = { ListFollowUsers, ListFollowUsersSchema };
+module.exports = { RelationshipUserNew, RelationshipUserNewSchema };

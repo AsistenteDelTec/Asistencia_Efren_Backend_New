@@ -1,4 +1,5 @@
 const {models} = require('../libs/sequelize');
+const { Op } = require('sequelize');
 
 class UsersService {
     constructor () {}
@@ -21,7 +22,24 @@ class UsersService {
     }
     
     async find() {
-        const res = await models.Users.findAll();
+        const res = await models.Users.findAll({
+            where: {
+                id_user: {
+                    [Op.ne]: id
+                }
+            }
+        });
+        return res;
+    }
+
+    async findComunity(iduser) {
+        const res = await models.Users.findAll({
+            where: {
+                id: {
+                    [Op.ne]: iduser
+                }
+            }
+        });
         return res;
     }
     

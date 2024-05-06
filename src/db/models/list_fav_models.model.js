@@ -1,21 +1,19 @@
-const { Model, DataTypes, Sequelize} = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
 
-const FOLLOW_TABLE = 'list_follow_users'
+const LIST_FAV_MODELS_TABLE = 'list_fav_models';
 
-class ListFollowUsers extends Model {
-
+class ListFavModels extends Model {
     static config(sequelize) {
         return {
             sequelize,
-            tableName: FOLLOW_TABLE,
-            modelName: 'ListFollowUsers',
+            tableName: LIST_FAV_MODELS_TABLE,
+            modelName: 'ListFavModels',
             timestamps: false
         };
     }
-
 }
 
-const ListFollowUsersSchema = {
+const ListFavModelsSchema = {
     id_user: {
         type: DataTypes.INTEGER,
         primaryKey: true,
@@ -25,15 +23,15 @@ const ListFollowUsersSchema = {
             key: 'id'
         }
     },
-    id_user_follow: {
+    id_model: {
         type: DataTypes.INTEGER,
         primaryKey: true,
         allowNull: false,
         references: {
-            model: 'Users',
+            model: 'Models',
             key: 'id'
         }
     }
 };
 
-module.exports = { ListFollowUsers, ListFollowUsersSchema };
+module.exports = { ListFavModels, ListFavModelsSchema };

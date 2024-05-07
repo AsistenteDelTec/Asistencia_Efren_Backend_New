@@ -8,7 +8,7 @@ const { RelationshipUserDataset, RelationshipUserDatasetSchema } = require('./re
 const { RelationshipUserNew, RelationshipUserNewSchema } = require('./relationship_user_new.model')
 const { ListFavModels, ListFavModelsSchema } = require('./list_fav_models.model')
 const { ListFavDatasets, ListFavDatasetsSchema } = require('./list_fav_datsets.model')
-
+const { Ticket,TicketSchema } = require('../models/ticket.model');
 
 function setupModels(sequelize) {
     Users.init(UsersSchema, Users.config(sequelize));
@@ -21,6 +21,7 @@ function setupModels(sequelize) {
     RelationshipUserNew.init(RelationshipUserNewSchema, RelationshipUserNew.config(sequelize));
     ListFavModels.init(ListFavModelsSchema, ListFavModels.config(sequelize));
     ListFavDatasets.init(ListFavDatasetsSchema, ListFavDatasets.config(sequelize));
+    Ticket.init(TicketSchema, Ticket.config(sequelize));
 
     // Definir relaciones
     Users.hasMany(ListFollowUsers, { foreignKey: 'id_user' });

@@ -1,51 +1,55 @@
 const {models} = require('../libs/sequelize');
-const { Op } = require('sequelize');
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+const authConfig = require('../config/auth')
 
 class UsersService {
     constructor () {}
 
-    async create(data) {
-        
-        const datos = {
-            username: data.body.username,
-            fullname: data.body.fullname,
-            password: data.body.password,
-            email: data.body.email,
-            date_joined: data.body.date_joined,
-            verified: data.body.verified,
-            user_role: data.body.user_role
-        };
-        
-        const res = await models.Users.create(datos);
-        console.log(res.Users);
-        return res;
-    }
     
-    async find() {
-        const res = await models.Users.findAll({
-            where: {
-                id_user: {
-                    [Op.ne]: id
-                }
-            }
-        });
-        return res;
+    async create(data) {
+        try {
+            let password = bcrypt.hashSync(data.body.password, parseInt(authConfig.rounds))
+            const user = {
+                username: data.body.username,
+                fullname: data.body.fullname,
+                password: password,
+                email: data.body.email,
+                date_joined: data.body.date_joined,
+                verified: data.body.verified,
+                user_role: data.body.user_role
+            };
+    
+            const createdUser = await models.Users.create(user);
+    
+            let token = jwt.sign({ user: user }, authConfig.secret, {
+                expiresIn: authConfig.expires
+            });
+    
+            // Devolver los datos relevantes como un objeto
+            return {
+                user: createdUser,
+                token: token
+            };
+        } catch (error) {
+            // Manejar cualquier error y lanzarlo
+            throw error;
+        }
     }
 
-    async findComunity(iduser) {
-        const res = await models.Users.findAll({
-            where: {
-                id: {
-                    [Op.ne]: iduser
-                }
-            }
-        });
+    async find() {
+        const res = await models.Users.findAll();
         return res;
     }
     
 
     async findOne(id){
         const res = await models.Users.findByPk(id);
+        return res;
+    }
+
+    async findOneByEmail(email) {
+        const res = await models.Users.findOne({ where: { email: email } });
         return res;
     }
 

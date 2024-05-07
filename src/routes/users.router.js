@@ -5,7 +5,6 @@ const usersController = require('../controllers/users.controller');
 router
     .get('/', usersController.get)
     .get('/:id', usersController.getById)
-    .get('/community/:id', usersController.getCommunity)
     .post('/', usersController.create)
     .put('/:id', usersController.update)
     .delete('/:id', usersController._delete);

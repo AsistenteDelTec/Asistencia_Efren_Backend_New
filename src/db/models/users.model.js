@@ -3,7 +3,6 @@ const { Model, DataTypes, Sequelize} = require('sequelize');
 const USERS_TABLE = 'users'
 
 class Users extends Model {
-
     static config(sequelize){
         return {
             sequelize,
@@ -29,7 +28,7 @@ const UsersSchema = {
         allowNull: false
     },
     password: {
-        type: DataTypes.STRING(30),
+        type: DataTypes.STRING(255),
         allowNull: false
     },
     email: {

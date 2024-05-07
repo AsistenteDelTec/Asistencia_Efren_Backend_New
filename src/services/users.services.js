@@ -1,12 +1,12 @@
-const {models} = require('../libs/sequelize');
+const { models } = require('../libs/sequelize');
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const authConfig = require('../config/auth')
 
 class UsersService {
-    constructor () {}
+    constructor() { }
 
-    
+
     async create(data) {
         try {
             let password = bcrypt.hashSync(data.body.password, parseInt(authConfig.rounds))
@@ -19,13 +19,13 @@ class UsersService {
                 verified: data.body.verified,
                 user_role: data.body.user_role
             };
-    
+
             const createdUser = await models.Users.create(user);
-    
+
             let token = jwt.sign({ user: user }, authConfig.secret, {
                 expiresIn: authConfig.expires
             });
-    
+
             // Devolver los datos relevantes como un objeto
             return {
                 user: createdUser,
@@ -41,9 +41,9 @@ class UsersService {
         const res = await models.Users.findAll();
         return res;
     }
-    
 
-    async findOne(id){
+
+    async findOne(id) {
         const res = await models.Users.findByPk(id);
         return res;
     }
@@ -53,16 +53,17 @@ class UsersService {
         return res;
     }
 
-    async update(id,data){
+    async update(id, data) {
         const model = await this.findOne(id);
+        data.password = bcrypt.hashSync(data.password, parseInt(authConfig.rounds))
         const res = await model.update(data);
         return res;
     }
 
-    async delete(id){
+    async delete(id) {
         const model = await this.findOne(id);
         await model.destroy();
-        return {deleted: true};
+        return { deleted: true };
     }
 }
 

@@ -2,7 +2,7 @@ const { models } = require('../libs/sequelize');
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const authConfig = require('../config/auth')
-
+const { Op } = require('sequelize');
 class UsersService {
     constructor() { }
 
@@ -50,6 +50,17 @@ class UsersService {
 
     async findOneByEmail(email) {
         const res = await models.Users.findOne({ where: { email: email } });
+        return res;
+    }
+
+    async findComunity(iduser) {
+        const res = await models.Users.findAll({
+            where: {
+                id: {
+                    [Op.ne]: iduser
+                }
+            }
+        });
         return res;
     }
 

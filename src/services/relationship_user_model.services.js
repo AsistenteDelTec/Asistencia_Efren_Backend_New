@@ -22,7 +22,7 @@ class RelationshipUserModel {
                 include: [
                     {
                         model: models.Models,
-                        as: 'models' // Utiliza el alias 'models' que configuraste en la asociación
+                        as: 'models'
                     }
                 ]
             });

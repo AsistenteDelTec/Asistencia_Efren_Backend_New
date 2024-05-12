@@ -31,11 +31,9 @@ function setupModels(sequelize) {
         through: RelationshipUserModel,
         foreignKey: 'id_user',
         as: 'models',
-        // Incluir directamente la información del modelo sin la información de RelationshipUserModel
-        // Utilizando 'include' con 'through'
         include: {
             model: Models,
-            through: { attributes: [] } // No seleccionar ninguna columna de RelationshipUserModel
+            through: { attributes: [] }
         }
     });
 
@@ -43,11 +41,9 @@ function setupModels(sequelize) {
         through: RelationshipUserDataset,
         foreignKey: 'id_user',
         as: 'datasets',
-        // Incluir directamente la información del modelo sin la información de RelationshipUserModel
-        // Utilizando 'include' con 'through'
         include: {
             model: Datasets,
-            through: { attributes: [] } // No seleccionar ninguna columna de RelationshipUserModel
+            through: { attributes: [] }
         }
     });
 
@@ -55,11 +51,9 @@ function setupModels(sequelize) {
         through: RelationshipUserNew,
         foreignKey: 'id_user',
         as: 'news',
-        // Incluir directamente la información del modelo sin la información de RelationshipUserModel
-        // Utilizando 'include' con 'through'
         include: {
             model: News,
-            through: { attributes: [] } // No seleccionar ninguna columna de RelationshipUserModel
+            through: { attributes: [] } 
         }
     });
 
@@ -67,11 +61,9 @@ function setupModels(sequelize) {
         through: ListFavModels,
         foreignKey: 'id_user',
         as: 'favModel',
-        // Incluir directamente la información del modelo sin la información de RelationshipUserModel
-        // Utilizando 'include' con 'through'
         include: {
             model: Models,
-            through: { attributes: [] } // No seleccionar ninguna columna de RelationshipUserModel
+            through: { attributes: [] }
         }
     });
 
@@ -79,11 +71,9 @@ function setupModels(sequelize) {
         through: ListFavDatasets,
         foreignKey: 'id_user',
         as: 'favDatasets',
-        // Incluir directamente la información del modelo sin la información de RelationshipUserModel
-        // Utilizando 'include' con 'through'
         include: {
             model: Datasets,
-            through: { attributes: [] } // No seleccionar ninguna columna de RelationshipUserModel
+            through: { attributes: [] }
         }
     });
 

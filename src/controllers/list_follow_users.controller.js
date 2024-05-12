@@ -23,6 +23,18 @@ const get = async (req,res) => {
     }
 }
 
+const getRelation = async (req,res) => {
+    try{
+        const {id} = req.params;
+        const {id2} = req.params;
+        const response = await service.findOne(id,id2);
+        console.log(response);
+        res.json(response);
+    } catch (error){
+        res.status(500).send({success: false, message: error.message});
+    }
+}
+
 const update = async (req,res) => {
     try {
         const {id} = req.params;
@@ -46,5 +58,5 @@ const _delete = async (req,res) => {
 }
 
 module.exports = {
-    create,get,update,_delete
+    create,get,update,getRelation,_delete
 };

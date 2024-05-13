@@ -43,6 +43,19 @@ const getCommunity = async (req, res) => {
     }
 }
 
+const getCount = async (req, res) => {
+    try {
+        const {id} = req.params;
+        const models = await service.countUserModels(id);
+        const datasets = await service.countUserDatasets(id);
+        const news = await service.countUserNews(id);
+        console.log(news)
+        res.json({ 'models': models,'datasets':datasets, 'news':news});
+    }catch(error){
+        res.status(500).send({success: false, message: error.message});
+    }
+}
+
 const update = async (req, res) => {
     try {
         const { id } = req.params;
@@ -65,5 +78,5 @@ const _delete = async (req, res) => {
 }
 
 module.exports = {
-    create, get, getCommunity, getById, update, _delete
+    create, get, getCommunity, getById,getCount, update, _delete
 };

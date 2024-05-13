@@ -64,6 +64,48 @@ class UsersService {
         return res;
     }
 
+    async countUserModels(idUser) {
+        try {
+            const count = await models.RelationshipUserModel.count({
+                where: {
+                    id_user: idUser
+                }
+            });
+            return count;
+        } catch (error) {
+            console.error('Error al contar relaciones:', error);
+            return null;
+        }
+    }
+
+    async countUserDatasets(idUser) {
+        try {
+            const count = await models.RelationshipUserDataset.count({
+                where: {
+                    id_user: idUser
+                }
+            });
+            return count;
+        } catch (error) {
+            console.error('Error al contar relaciones:', error);
+            return null;
+        }
+    }
+
+    async countUserNews(idUser) {
+        try {
+            const count = await models.RelationshipUserNew.count({
+                where: {
+                    id_user: idUser
+                }
+            });
+            return count;
+        } catch (error) {
+            console.error('Error al contar relaciones:', error);
+            return null;
+        }
+    }
+
     async update(id, data) {
         const model = await this.findOne(id);
         data.password = bcrypt.hashSync(data.password, parseInt(authConfig.rounds))

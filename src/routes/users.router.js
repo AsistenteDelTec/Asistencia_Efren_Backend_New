@@ -7,6 +7,7 @@ router
     .get('/:id', usersController.getById)
     .get('/community/:id', usersController.getCommunity)
     .post('/', usersController.create)
+    .get('/count/:id', usersController.getCount)
     .put('/:id', usersController.update)
     .delete('/:id', usersController._delete);
 

@@ -42,6 +42,20 @@ class RelationshipUserModel {
         return res;
     }
 
+    async countUserModels(idUser) {
+        try {
+            const count = await models.RelationshipUserModel.count({
+                where: {
+                    id_user: idUser
+                }
+            });
+            return count;
+        } catch (error) {
+            console.error('Error al contar relaciones:', error);
+            return null;
+        }
+    }
+
     async delete(id,id2){
         const model = await this.findOne(id,id2);
         await model.destroy();

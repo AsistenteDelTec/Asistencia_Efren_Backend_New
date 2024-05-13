@@ -32,6 +32,16 @@ const getOne = async (req, res) => {
     }
 }
 
+const getCount = async (req, res) => {
+    try {
+        const {id} = req.params;
+        const response = await service.countUserModels(id);
+        res.json({ success: true, response });
+    }catch(error){
+        res.status(500).send({success: false, message: error.message});
+    }
+}
+
 const _delete = async (req,res) => {
     try{
         const {id} = req.params;
@@ -44,5 +54,5 @@ const _delete = async (req,res) => {
 }
 
 module.exports = {
-    create,get,getOne,_delete
+    create,get,getCount,getOne,_delete
 };

@@ -106,6 +106,21 @@ class UsersService {
         }
     }
 
+
+    async countFollowers(idUser) {
+        try {
+            const count = await models.ListFollowUsers.count({
+                where: {
+                    id_user_follow: idUser
+                }
+            });
+            return count;
+        } catch (error) {
+            console.error('Error al contar relaciones:', error);
+            return null;
+        }
+    }
+
     async update(id, data) {
         const model = await this.findOne(id);
         data.password = bcrypt.hashSync(data.password, parseInt(authConfig.rounds))

@@ -56,6 +56,16 @@ const getCount = async (req, res) => {
     }
 }
 
+const getFollowers = async (req, res) => {
+    try {
+        const {id} = req.params;
+        const numFollowers = await service.countFollowers(id);
+        res.json({ 'followers': numFollowers});
+    }catch(error){
+        res.status(500).send({success: false, message: error.message});
+    }
+}
+
 const update = async (req, res) => {
     try {
         const { id } = req.params;
@@ -78,5 +88,5 @@ const _delete = async (req, res) => {
 }
 
 module.exports = {
-    create, get, getCommunity, getById,getCount, update, _delete
+    create, get, getCommunity, getById,getCount,getFollowers, update, _delete
 };

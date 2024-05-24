@@ -5,8 +5,7 @@ const authConfig = require('../config/auth')
 const { Op } = require('sequelize');
 class UsersService {
     constructor() { }
-
-
+    
     async create(data) {
         try {
             let password = bcrypt.hashSync(data.body.password, parseInt(authConfig.rounds))
@@ -41,7 +40,6 @@ class UsersService {
         const res = await models.Users.findAll();
         return res;
     }
-
 
     async findOne(id) {
         const res = await models.Users.findByPk(id);
@@ -105,7 +103,6 @@ class UsersService {
             return null;
         }
     }
-
 
     async countFollowers(idUser) {
         try {

@@ -66,6 +66,7 @@ const getFollowers = async (req, res) => {
     }
 }
 
+
 const update = async (req, res) => {
     try {
         const { id } = req.params;

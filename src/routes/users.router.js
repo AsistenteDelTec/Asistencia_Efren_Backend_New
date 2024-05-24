@@ -13,3 +13,4 @@ router
     .delete('/:id', usersController._delete);
 
 module.exports = router;
+

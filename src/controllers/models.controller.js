@@ -10,6 +10,17 @@ const create = async (req, res) => {
     }
 }
 
+
+const getPostsByYear = async (req, res) => {
+    try {
+        const {year} = req.params;
+        const response = await service.getPostsByYear(year);
+        res.json(response);
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 const get = async (req, res) => {
     try {
         const response = await service.find();
@@ -52,5 +63,5 @@ const _delete = async (req, res) => {
 }
 
 module.exports = {
-    create, get, getById, update, _delete
+    create, get, getById, update, _delete, getPostsByYear
 };

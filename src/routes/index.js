@@ -25,7 +25,7 @@ function routerApi(app) {
     router.use('/relationshipNew', relationshipNew);
     router.use('/favModel', favModel);
     router.use('/favDataset', favDataset);
-    router.use('/sign',authRouter);
+    router.use('/auth',authRouter);
     router.use('/ticket',ticketRouter);
 }
 

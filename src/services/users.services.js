@@ -5,7 +5,7 @@ const authConfig = require('../config/auth')
 const { Op } = require('sequelize');
 class UsersService {
     constructor() { }
-    
+
     async create(data) {
         try {
             let password = bcrypt.hashSync(data.body.password, parseInt(authConfig.rounds))
@@ -119,10 +119,34 @@ class UsersService {
     }
 
     async update(id, data) {
-        const model = await this.findOne(id);
-        data.password = bcrypt.hashSync(data.password, parseInt(authConfig.rounds))
-        const res = await model.update(data);
-        return res;
+        try {
+            const model = await this.findOne(id);
+            const updatedModel = await model.update(data);
+
+            const user = {
+                id: id,
+                username: updatedModel.username,
+                fullname: updatedModel.fullname,
+                password: updatedModel.password,
+                email: updatedModel.email,
+                date_joined: updatedModel.date_joined,
+                verified: updatedModel.verified,
+                user_role: updatedModel.user_role
+            };
+
+            let token = jwt.sign({ user: user }, authConfig.secret, {
+                expiresIn: authConfig.expires
+            });
+            // let token = data.token;
+            // Devolver los datos relevantes como un objeto
+            return {
+                user: user,
+                token: token
+            };
+        } catch (error) {
+            console.error('Error al actualizar usuario:', error);
+            throw error;
+        }
     }
 
     async delete(id) {

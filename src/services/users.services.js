@@ -50,6 +50,7 @@ class UsersService {
 
     async findOne(id) {
         const res = await models.Users.findByPk(id);
+        console.log(res)
         return res;
     }
 

@@ -1,29 +1,35 @@
 const { models } = require('../libs/sequelize');
-const bcrypt = require('bcrypt')
-const jwt = require('jsonwebtoken')
-const authConfig = require('../config/auth')
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const authConfig = require('../config/auth');
 const { Op } = require('sequelize');
+const { sendVerificationEmail } = require('../services/email.services'); // Importar el servicio de email
+
 class UsersService {
     constructor() { }
 
     async create(data) {
         try {
-            let password = bcrypt.hashSync(data.body.password, parseInt(authConfig.rounds))
+            let password = bcrypt.hashSync(data.body.password, parseInt(authConfig.rounds));
             const user = {
                 username: data.body.username,
                 fullname: data.body.fullname,
                 password: password,
                 email: data.body.email,
                 date_joined: data.body.date_joined,
-                verified: data.body.verified,
+                verified: false, // Cambiar a falso por defecto
                 user_role: data.body.user_role
             };
 
             const createdUser = await models.Users.create(user);
 
-            let token = jwt.sign({ user: user }, authConfig.secret, {
-                expiresIn: authConfig.expires
+            // Crear token de verificación
+            let token = jwt.sign({ email: user.email }, authConfig.secret, {
+                expiresIn: '1h' // Expira en 1 hora
             });
+
+            // Enviar email de verificación
+            sendVerificationEmail(user.email, token);
 
             // Devolver los datos relevantes como un objeto
             return {
@@ -36,6 +42,7 @@ class UsersService {
         }
     }
 
+
     async find() {
         const res = await models.Users.findAll();
         return res;
@@ -43,6 +50,7 @@ class UsersService {
 
     async findOne(id) {
         const res = await models.Users.findByPk(id);
+        console.log(res)
         return res;
     }
 

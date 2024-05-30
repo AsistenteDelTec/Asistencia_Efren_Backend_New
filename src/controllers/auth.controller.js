@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const authConfig = require('../config/auth');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const { sendVerificationEmail } = require('../services/email.services'); // Importar el servicio de email
 
 // Serializar y deserializar usuario
 passport.serializeUser((user, done) => {
@@ -95,9 +96,19 @@ module.exports = {
     signUp: async (req, res) => {
         try {
             const response = await service.create(req);
+
+            // Crear token de verificación
+            let token = jwt.sign({ email: response.user.email }, authConfig.secret, {
+                expiresIn: '1h' // Expira en 1 hora
+            });
+
+            // Enviar email de verificación
+            sendVerificationEmail(response.user.email, token);
+
             res.json({
                 user: response.user,
-                token: response.token
+                token: response.token,
+                message: 'Por favor, verifica tu correo electrónico.'
             });
         } catch (error) {
             res.status(500).send({ success: false, message: error.message });
@@ -105,8 +116,6 @@ module.exports = {
     },
 
     googleCallback: async (req, res) => {
-        console.log("Pedrio pedrio pedrio")
-        // Suponiendo que después de autenticarse correctamente, redirigimos a la página principal
         const token = jwt.sign({ user: req.user }, authConfig.secret, { expiresIn: authConfig.expires });
         res.json({ token: token, user: req.user });
     }

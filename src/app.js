@@ -4,7 +4,8 @@ const cors = require('cors');
 const passport = require('passport');
 const session = require('express-session');
 
-dotenv.config();
+dotenv.config(); // Asegúrate de llamar a dotenv.config()
+
 const app = express();
 
 const port = process.env.PORT || 3000;
@@ -14,7 +15,7 @@ const routerApi = require('./routes');
 app.use(cors({
     origin: ['http://localhost:3000', 'http://localhost:5173'], // Añade cualquier otro origen que uses
     credentials: true
-  }));
+}));
 app.use(express.json());
 
 // Configurar sesión para Passport usando AUTH_SECRET del .env

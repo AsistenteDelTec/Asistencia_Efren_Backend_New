@@ -8,7 +8,9 @@ const { RelationshipUserDataset, RelationshipUserDatasetSchema } = require('./re
 const { RelationshipUserNew, RelationshipUserNewSchema } = require('./relationship_user_new.model')
 const { ListFavModels, ListFavModelsSchema } = require('./list_fav_models.model')
 const { ListFavDatasets, ListFavDatasetsSchema } = require('./list_fav_datsets.model')
-const { Ticket,TicketSchema } = require('../models/ticket.model');
+const { Ticket, TicketSchema } = require('../models/ticket.model');
+const { Notifications, NotificationsSchema } = require('./notifications.model');
+const { StatusNotification, StatusNotificationSchema } = require('./statusNotification.model');
 
 function setupModels(sequelize) {
     Users.init(UsersSchema, Users.config(sequelize));
@@ -22,6 +24,8 @@ function setupModels(sequelize) {
     ListFavModels.init(ListFavModelsSchema, ListFavModels.config(sequelize));
     ListFavDatasets.init(ListFavDatasetsSchema, ListFavDatasets.config(sequelize));
     Ticket.init(TicketSchema, Ticket.config(sequelize));
+    Notifications.init(NotificationsSchema, Notifications.config(sequelize)); // Inicializar Notification
+    StatusNotification.init(StatusNotificationSchema, StatusNotification.config(sequelize)); // Inicializar StatusNotification
 
     // Definir relaciones
     Users.hasMany(ListFollowUsers, { foreignKey: 'id_user' });
@@ -53,7 +57,7 @@ function setupModels(sequelize) {
         as: 'news',
         include: {
             model: News,
-            through: { attributes: [] } 
+            through: { attributes: [] }
         }
     });
 
@@ -116,6 +120,10 @@ function setupModels(sequelize) {
 
     RelationshipUserNew.belongsTo(Users, { foreignKey: 'id_user' });
     RelationshipUserNew.belongsTo(News, { foreignKey: 'id_new' });
+
+    Users.hasMany(Notifications, { foreignKey: 'id_user' });
+    Notifications.belongsTo(Users, { foreignKey: 'id_user' });
+
 
 }
 

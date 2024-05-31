@@ -39,7 +39,11 @@ const NotificationsSchema = {
     validate: {
       isIn: [['TICKET', 'MODEL', 'DATASET', 'NEW', 'FORUM', 'FOLLOWER']]
     }
-  }
+  },
+  to_admin: {
+    type: DataTypes.BOOLEAN,
+    allowNull: false
+  },
 };
 
 module.exports = { Notifications, NotificationsSchema };

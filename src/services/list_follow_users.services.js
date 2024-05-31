@@ -11,7 +11,8 @@ class ListFollowUsersService {
         const datos = {
             id_user: data.body.id_user,
             id_user_follow: data.body.id_user_follow,
-            category: 'FOLLOWER'
+            category: 'FOLLOWER',
+            to_admin: false
         };
 
         
@@ -24,7 +25,8 @@ class ListFollowUsersService {
                 id_user: datos.id_user_follow,
                 category: datos.category,
                 message: `${user.fullname} ha comenzado a seguirte.`,
-                not_date: new Date()
+                not_date: new Date(),
+                to_admin:false
             });
 
             // Emitir evento de notificación
@@ -35,7 +37,8 @@ class ListFollowUsersService {
                 message: notification.message,
                 id: notification.id,
                 date: new Date(notification.not_date).toLocaleDateString(),
-                time: new Date(notification.not_date).toLocaleTimeString()
+                time: new Date(notification.not_date).toLocaleTimeString(),
+                to_admin:false
             });
 
             return res;

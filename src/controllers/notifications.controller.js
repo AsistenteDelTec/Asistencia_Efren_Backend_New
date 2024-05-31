@@ -22,6 +22,15 @@ const getNotificationsByUser = async (req, res, next) => {
   }
 };
 
+const getNotifications = async (req, res, next) => {
+  try {
+    const notifications = await service.getNotifications();
+    res.status(200).json(notifications);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const deleteNotification = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -44,6 +53,7 @@ const clearNotifications = async (req, res, next) => {
 
 module.exports = {
   createNotification,
+  getNotifications,
   getNotificationsByUser,
   deleteNotification,
   clearNotifications

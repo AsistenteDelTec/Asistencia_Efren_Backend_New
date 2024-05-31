@@ -22,7 +22,11 @@ class RelationshipUserModel {
                 include: [
                     {
                         model: models.Models,
-                        as: 'models'
+                        as: 'models',
+                        where: {
+                            status: 'Accepted',
+                            privated: 'false'
+                        }
                     }
                 ]
             });

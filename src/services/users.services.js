@@ -2,10 +2,10 @@ const { models } = require('../libs/sequelize');
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const authConfig = require('../config/auth')
-const { Op } = require('sequelize');
+const { Op, fn, col } = require('sequelize');
 class UsersService {
     constructor() { }
-    
+
     async create(data) {
         try {
             let password = bcrypt.hashSync(data.body.password, parseInt(authConfig.rounds))
@@ -116,6 +116,29 @@ class UsersService {
             console.error('Error al contar relaciones:', error);
             return null;
         }
+    }
+
+    async getUsersByYear(year) {
+        const results = await models.Users.findAll({
+            attributes: [
+                [fn('DATE_TRUNC', 'month', col('date_joined')), 'month'],
+                [fn('COUNT', col('id')), 'count'],
+            ],
+            where: {
+                date_joined: {
+                    [Op.between]: [`${year}-01-01`, `${year}-12-31`],
+                },
+            },
+            group: [fn('DATE_TRUNC', 'month', col('date_joined'))],
+            order: [[fn('DATE_TRUNC', 'month', col('date_joined')), 'ASC']],
+        });
+
+        const data = results.map(result => ({
+            month: result.dataValues.month,
+            count: result.dataValues.count,
+        }));
+
+        return (data)
     }
 
     async update(id, data) {

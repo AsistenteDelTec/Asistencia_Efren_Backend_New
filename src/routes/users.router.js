@@ -6,9 +6,10 @@ router
     .get('/', usersController.get)
     .get('/:id', usersController.getById)
     .get('/community/:id', usersController.getCommunity)
-    .post('/', usersController.create)
     .get('/count/:id', usersController.getCount)
     .get('/followers/:id', usersController.getFollowers)
+    .get('/usersByYear/:year', usersController.getUsersByYear)
+    .post('/', usersController.create)
     .put('/:id', usersController.update)
     .delete('/:id', usersController._delete);
 

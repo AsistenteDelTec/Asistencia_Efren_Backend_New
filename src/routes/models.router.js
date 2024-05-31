@@ -3,7 +3,10 @@ const router = express.Router();
 const modelsController = require('../controllers/models.controller');
 
 router
-    .get('/', modelsController.get)
+
+    .get('/models/', modelsController.getTopModels)
+
+    .get('/', modelsController.getTopModels)
     .get('/:id', modelsController.getById)
     .get('/modelsByYear/:year', modelsController.getPostsByYear)
     .post('/', modelsController.create)

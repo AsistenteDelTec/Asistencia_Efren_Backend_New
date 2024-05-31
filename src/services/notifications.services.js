@@ -2,11 +2,18 @@
 const { models } = require('../libs/sequelize');
 
 class NotificationsService {
-  constructor() {}
+  constructor() { }
 
   async createNotification(data) {
     const notification = await models.Notifications.create(data);
     return notification;
+  }
+  
+  async getNotifications() {
+    const notifications = await models.Notifications.findAll({
+      order: [['not_date', 'DESC']]
+    });
+    return notifications;
   }
 
   async getNotificationsByUser(userId) {
@@ -16,6 +23,8 @@ class NotificationsService {
     });
     return notifications;
   }
+
+
 
   async deleteNotification(notificationId) {
     const result = await models.Notifications.destroy({ where: { id: notificationId } });

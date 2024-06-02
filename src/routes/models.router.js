@@ -4,7 +4,7 @@ const modelsController = require('../controllers/models.controller');
 
 router
 
-    .get('/models/', modelsController.getTopModels)
+    .get('/topModels/', modelsController.getTopModels)
 
     .get('/', modelsController.getTopModels)
     .get('/:id', modelsController.getById)

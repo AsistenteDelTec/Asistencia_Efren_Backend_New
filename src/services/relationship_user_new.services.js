@@ -24,8 +24,7 @@ class RelationshipUserNews {
                         model: models.News,
                         as: 'news',
                         where: {
-                            status: 'Accepted',
-                            privated: 'false'
+                            status: 'Accepted'
                         }
                     }
                 ]

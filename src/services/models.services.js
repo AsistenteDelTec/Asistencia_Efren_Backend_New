@@ -64,6 +64,10 @@ class ModelsService {
     const topModels = await models.Models.findAll({
       order: [['score', 'DESC']],
       limit: 10,
+      where: {
+        status: 'Accepted',
+        privated: 'false'
+      },
     });
     return topModels;
   }

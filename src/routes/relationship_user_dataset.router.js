@@ -3,6 +3,8 @@ const router = express.Router();
 const relationDataset = require('../controllers/relationship_user_dataset.controller');
 
 router
+
+    .get('/myDatasets/:id', relationDataset.getMyDatasets)
     .post('/', relationDataset.create)
     .get('/:id', relationDataset.get)
     .get('/:id/:id2', relationDataset.getOne)

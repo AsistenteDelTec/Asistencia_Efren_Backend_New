@@ -23,9 +23,26 @@ class RelationshipUserNews {
                     {
                         model: models.News,
                         as: 'news',
-                        where: {
+                        where:{
                             status: 'Accepted'
                         }
+                    }
+                ]
+            });
+            return {user};
+        } catch (error) {
+            console.error('Error fetching user and models:', error);
+            throw error;
+        }
+    }
+
+    async findMyNews(id) {
+        try {
+            const user = await models.Users.findByPk(id, {
+                include: [
+                    {
+                        model: models.News,
+                        as: 'news',
                     }
                 ]
             });

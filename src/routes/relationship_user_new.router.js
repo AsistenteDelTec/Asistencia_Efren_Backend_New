@@ -3,6 +3,8 @@ const router = express.Router();
 const relationNews = require('../controllers/relationship_user_news.controller');
 
 router
+    .get('/myNews/:id', relationNews.getMyNews)
+
     .post('/', relationNews.create)
     .get('/:id', relationNews.get)
     .get('/:id/:id2', relationNews.getOne)

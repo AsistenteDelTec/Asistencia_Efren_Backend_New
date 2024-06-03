@@ -22,7 +22,11 @@ class RelationshipUserDataset {
                 include: [
                     {
                         model: models.Datasets,
-                        as: 'datasets' // Utiliza el alias 'models' que configuraste en la asociación
+                        as: 'datasets' , 
+                        where: {
+                            status: 'Accepted',
+                            privated: 'false'
+                        }
                     }
                 ]
             });

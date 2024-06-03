@@ -4,32 +4,6 @@ const { Op, fn, col } = require('sequelize');
 class ModelsService {
   constructor() { }
 
-  async getPostsByYear(year) {
-    // Realizar la consulta utilizando Sequelize
-    const results = await models.Models.findAll({
-      attributes: [
-        [fn('DATE_TRUNC', 'month', col('publish_date')), 'month'],
-        [fn('COUNT', col('id')), 'count'],
-      ],
-      where: {
-        publish_date: {
-          [Op.between]: [`${year}-01-01`, `${year}-12-31`],
-        },
-      },
-      group: [fn('DATE_TRUNC', 'month', col('publish_date'))],
-      order: [[fn('DATE_TRUNC', 'month', col('publish_date')), 'ASC']],
-    });
-
-    // Formatear los resultados
-    const data = results.map(result => ({
-      month: result.dataValues.month,
-      count: result.dataValues.count,
-    }));
-
-    return (data)
-
-  }
-
   async create(data) {
     const modelData = {
       model_name: data.body.model_name,
@@ -59,6 +33,43 @@ class ModelsService {
   async findOne(id) {
     const res = await models.Models.findByPk(id);
     return res;
+  }
+
+  async getPostsByYear(year) {
+    const results = await models.Models.findAll({
+      attributes: [
+        [fn('DATE_TRUNC', 'month', col('publish_date')), 'month'],
+        [fn('COUNT', col('id')), 'count'],
+      ],
+      where: {
+        publish_date: {
+          [Op.between]: [`${year}-01-01`, `${year}-12-31`],
+        },
+        status: 'Accepted',
+        privated: 'false'
+      },
+      group: [fn('DATE_TRUNC', 'month', col('publish_date'))],
+      order: [[fn('DATE_TRUNC', 'month', col('publish_date')), 'ASC']],
+    });
+
+    const data = results.map(result => ({
+      month: result.dataValues.month,
+      count: result.dataValues.count,
+    }));
+
+    return (data)
+  }
+
+  async getTopRatedModels() {
+    const topModels = await models.Models.findAll({
+      order: [['score', 'DESC']],
+      limit: 10,
+      where: {
+        status: 'Accepted',
+        privated: 'false'
+      },
+    });
+    return topModels;
   }
 
   async update(id, data) {

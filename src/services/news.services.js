@@ -1,4 +1,5 @@
 const { models } = require('../libs/sequelize');
+const { Op, fn, col } = require('sequelize');
 
 class NewsService {
     constructor() { }
@@ -28,6 +29,31 @@ class NewsService {
         const res = await models.News.findByPk(id);
         return res;
     }
+
+    async getPostsByYear(year) {
+        const results = await models.News.findAll({
+            attributes: [
+                [fn('DATE_TRUNC', 'month', col('publish_date')), 'month'],
+                [fn('COUNT', col('id')), 'count'],
+            ],
+            where: {
+                publish_date: {
+                    [Op.between]: [`${year}-01-01`, `${year}-12-31`],
+                },
+                status: 'Accepted'
+            },
+            group: [fn('DATE_TRUNC', 'month', col('publish_date'))],
+            order: [[fn('DATE_TRUNC', 'month', col('publish_date')), 'ASC']],
+        });
+
+        const data = results.map(result => ({
+            month: result.dataValues.month,
+            count: result.dataValues.count,
+        }));
+
+        return (data)
+    }
+
 
     async update(id, data) {
         const news = await this.findOne(id);

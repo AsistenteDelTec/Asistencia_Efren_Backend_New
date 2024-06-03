@@ -22,7 +22,10 @@ class RelationshipUserNews {
                 include: [
                     {
                         model: models.News,
-                        as: 'news' // Utiliza el alias 'models' que configuraste en la asociación
+                        as: 'news',
+                        where: {
+                            status: 'Accepted'
+                        }
                     }
                 ]
             });

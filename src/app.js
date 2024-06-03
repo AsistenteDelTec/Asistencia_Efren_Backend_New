@@ -1,24 +1,34 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const http = require('http');
+const socket = require('./config/socket'); // Importa el módulo de socket
 
 dotenv.config();
 const app = express();
 
-const port  = process.env.PORT || 3000;
+const port = process.env.PORT || 3000;
 
-const routerApi = require('./routes')
+const server = http.createServer(app);
+const io = socket.init(server); // Inicializa socket.io
 
-app.use(cors());
+const routerApi = require('./routes');
+
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:5173'],
+  credentials: true
+}));
 app.use(express.json());
 
-app.get('/', (req,res)=>{
-    res.send('backend is on')
+// Ruta de prueba
+app.get('/', (req, res) => {
+  res.send('backend is on');
 });
 
 routerApi(app);
 
-app.listen(port,()=>{
-    console.log("Port ==> ", port);
+server.listen(port, () => {
+  console.log("Port ==> ", port);
 });
 
+module.exports = { app, server };

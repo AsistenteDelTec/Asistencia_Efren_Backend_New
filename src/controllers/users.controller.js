@@ -66,6 +66,15 @@ const getFollowers = async (req, res) => {
     }
 }
 
+const getUsersByYear = async (req, res) => {
+    try {
+        const {year} = req.params;
+        const response = await service.getUsersByYear(year);
+        res.json(response);
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
 
 const update = async (req, res) => {
     try {
@@ -89,5 +98,5 @@ const _delete = async (req, res) => {
 }
 
 module.exports = {
-    create, get, getCommunity, getById,getCount,getFollowers, update, _delete
+    create, get, getCommunity, getById,getCount,getFollowers,getUsersByYear, update, _delete
 };

@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router();
 const usersController = require('../controllers/users.controller');
+const authenticateToken = require('../middleware/authenticateToken');
 
 router
     .get('/', usersController.get)
@@ -9,7 +10,7 @@ router
     .post('/', usersController.create)
     .get('/count/:id', usersController.getCount)
     .get('/followers/:id', usersController.getFollowers)
-    .put('/:id', usersController.update)
+    .put('/:id', authenticateToken, usersController.update)
     .delete('/:id', usersController._delete);
 
 module.exports = router;

@@ -71,9 +71,8 @@ module.exports = {
                     user_role: response.user_role
                 };
                 if (bcrypt.compareSync(password, user.password)) {
-                    let token = jwt.sign({ user: user }, authConfig.secret, {
-                        expiresIn: authConfig.expires
-                    });
+                    
+                    let token = service.generateToken(user)
                     return res.json({
                         user: user,
                         token: token
@@ -97,10 +96,11 @@ module.exports = {
         try {
             const response = await service.create(req);
 
+            let token = service.generateToken(response.user)
             // Crear token de verificación
-            let token = jwt.sign({ email: response.user.email }, authConfig.secret, {
-                expiresIn: '1h' // Expira en 1 hora
-            });
+            // let token = jwt.sign({ email: response.user.email }, authConfig.secret, {
+            //     expiresIn: '1h' // Expira en 1 hora
+            // });
 
             // Enviar email de verificación
             sendVerificationEmail(response.user.email, token);
@@ -116,7 +116,8 @@ module.exports = {
     },
 
     googleCallback: async (req, res) => {
-        const token = jwt.sign({ user: req.user }, authConfig.secret, { expiresIn: authConfig.expires });
+        // const token = jwt.sign({ user: req.user }, authConfig.secret, { expiresIn: authConfig.expires });
+        const token = service.generateToken(req.user)
         res.json({ token: token, user: req.user });
     }
 };

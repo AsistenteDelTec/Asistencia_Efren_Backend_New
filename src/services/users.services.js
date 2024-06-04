@@ -24,9 +24,7 @@ class UsersService {
             const createdUser = await models.Users.create(user);
 
             // Crear token de verificación
-            let token = jwt.sign({ email: user.email }, authConfig.secret, {
-                expiresIn: '1h' // Expira en 1 hora
-            });
+            let token = this.generateToken(user)
 
             // Enviar email de verificación
             sendVerificationEmail(user.email, token);
@@ -41,8 +39,7 @@ class UsersService {
             throw error;
         }
     }
-
-
+    
     async find() {
         const res = await models.Users.findAll();
         return res;
@@ -50,7 +47,6 @@ class UsersService {
 
     async findOne(id) {
         const res = await models.Users.findByPk(id);
-        console.log(res)
         return res;
     }
 
@@ -142,9 +138,10 @@ class UsersService {
                 user_role: updatedModel.user_role
             };
 
-            let token = jwt.sign({ user: user }, authConfig.secret, {
-                expiresIn: authConfig.expires
-            });
+            let token = this.generateToken(user)
+            // let token = jwt.sign({ user: user }, authConfig.secret, {
+            //     expiresIn: authConfig.expires
+            // });
             // let token = data.token;
             // Devolver los datos relevantes como un objeto
             return {
@@ -161,6 +158,16 @@ class UsersService {
         const model = await this.findOne(id);
         await model.destroy();
         return { deleted: true };
+    }
+
+    generateToken(user) {
+        const payload = {
+            id: user.id,
+            email:user.email,
+            role: user.user_role
+        };
+
+        return jwt.sign(payload, authConfig.secret, { expiresIn: authConfig.expires });
     }
 }
 

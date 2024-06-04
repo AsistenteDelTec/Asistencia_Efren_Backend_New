@@ -33,8 +33,9 @@ class ListFollowUsersService {
             const io = getIo(); // Obtiene la instancia de io
             console.log('Socket.IO instance:', io); // Verificar si io está definido
             io.emit('notification', {
-                userId: datos.id_user_follow,
+                id_user: datos.id_user_follow,
                 message: notification.message,
+                category: datos.category,
                 id: notification.id,
                 date: new Date(notification.not_date).toLocaleDateString(),
                 time: new Date(notification.not_date).toLocaleTimeString(),

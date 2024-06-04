@@ -1,4 +1,3 @@
-// controllers/notifications.controller.js
 const NotificationsService = require('../services/notifications.services');
 const service = new NotificationsService();
 
@@ -51,10 +50,20 @@ const clearNotifications = async (req, res, next) => {
   }
 };
 
+const clearAllNotifications = async (req, res, next) => {
+  try {
+    const result = await service.clearAllNotifications();
+    res.status(204).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createNotification,
   getNotifications,
   getNotificationsByUser,
   deleteNotification,
-  clearNotifications
+  clearNotifications,
+  clearAllNotifications
 };

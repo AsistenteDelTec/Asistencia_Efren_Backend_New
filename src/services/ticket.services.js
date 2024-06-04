@@ -9,12 +9,12 @@ class TicketService {
   async create(data) {
     try {
       const ticket = await models.Ticket.create(data);
-
+      const userFound = await models.Users.findByPk(data.id_user);
       // Crear notificación para los administradores
       const notification = await notificationsService.createNotification({
         id_user: data.id_user,
         category: 'TICKET',
-        message: `El usuario ${data.id_user} ha reportado un ticket: ${ticket.title}`,
+        message: `${userFound.fullname} ha reportado un ticket.`,
         not_date: new Date(),
         to_admin: true // Indicar que esta notificación es para administradores
       });
@@ -26,7 +26,7 @@ class TicketService {
       // Emitir evento de notificación
       const io = getIo();
       io.emit('notification', {
-        userId: null, // Emitir notificación para todos los administradores
+        userId: notification.id_user, // Emitir notificación para todos los administradores
         message: notification.message,
         id: notification.id,
         date: new Date(notification.not_date).toLocaleDateString(),
@@ -76,7 +76,7 @@ class TicketService {
         // Emitir evento de notificación para el usuario
         const io = getIo();
         io.emit('notification', {
-          userId: model.id_user,
+          id_user: model.id_user,
           message: notification.message,
           id: notification.id,
           date: new Date(notification.not_date).toLocaleDateString(),

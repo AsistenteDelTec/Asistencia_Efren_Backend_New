@@ -26,7 +26,9 @@ class ModelsService {
   }
 
   async find() {
-    const res = await models.Models.findAll();
+    const res = await models.Models.findAll({
+      order: [['id', 'ASC']] // Ordena por 'id' en orden ascendente
+    });
     return res;
   }
 
@@ -71,6 +73,7 @@ class ModelsService {
     });
     return topModels;
   }
+
 
   async update(id, data) {
     const model = await this.findOne(id);

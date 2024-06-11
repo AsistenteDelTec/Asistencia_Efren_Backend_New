@@ -24,7 +24,7 @@ const get = async (req, res) => {
 const getAll = async (req, res) => {
     try {
         const response = await service.findAll();
-        res.json({ success: true, data: response });
+        res.json(response);
     } catch (error) {
         res.status(500).send({ success: false, message: error.message });
     }

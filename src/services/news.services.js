@@ -21,7 +21,9 @@ class NewsService {
     }
 
     async find() {
-        const res = await models.News.findAll();
+        const res = await models.News.findAll({
+            order: [['id', 'ASC']] // Ordena por 'id' en orden ascendente
+        });
         return res;
     }
 
@@ -54,11 +56,31 @@ class NewsService {
         return (data)
     }
 
-
     async update(id, data) {
-        const news = await this.findOne(id);
-        const res = await news.update(data);
-        return res;
+        try {
+            const news = await this.findOne(id);
+            const updateNew = await news.update(data);
+
+            const newsData = {
+                id: id,
+                news_name: updateNew.news_name,
+                publish_date: updateNew.publish_date,
+                small_description: updateNew.small_description,
+                large_description: updateNew.large_description,
+                score: updateNew.score,
+                url_new: updateNew.url_new,
+                version: updateNew.version,
+                privated: updateNew.privated,
+                cont_views: updateNew.cont_views,
+                status: updateNew.status
+            };
+
+            return newsData
+
+        } catch (error) {
+            console.error('Error al actualizar el modelo:', error);
+            throw error;
+        }
     }
 
     async delete(id) {

@@ -23,7 +23,9 @@ class DatasetsService {
     }
 
     async find() {
-        const res = await models.Datasets.findAll();
+        const res = await models.Datasets.findAll({
+            order: [['id', 'ASC']] // Ordena por 'id' en orden ascendente
+        });
         return res;
     }
 
@@ -58,9 +60,30 @@ class DatasetsService {
     }
 
     async update(id, data) {
-        const dataset = await this.findOne(id);
-        const res = await dataset.update(data);
-        return res;
+        try {
+            const dataset = await this.findOne(id);
+            const updateDataset = await dataset.update(data);
+
+            const datasetData = {
+                id: id,
+                dataset_name: updateDataset.dataset_name,
+                publish_date: updateDataset.publish_date,
+                description: updateDataset.description,
+                score: updateDataset.score,
+                url_source: updateDataset.url_source,
+                url_paper: updateDataset.url_paper,
+                version: updateDataset.version,
+                privated: updateDataset.privated,
+                cont_views: updateDataset.cont_views,
+                status: updateDataset.status
+            };
+
+            return datasetData
+
+        } catch (error) {
+            console.error('Error al actualizar el modelo:', error);
+            throw error;
+        }
     }
 
     async delete(id) {

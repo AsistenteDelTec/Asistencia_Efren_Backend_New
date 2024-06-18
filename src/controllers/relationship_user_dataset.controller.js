@@ -30,6 +30,16 @@ const getAll = async (req, res) => {
     }
 }
 
+const getMyDatasets = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const response = await service.findMyDatasets(id);
+        res.json(response);
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 const getOne = async (req, res) => {
     try {
         const { id } = req.params;
@@ -53,5 +63,5 @@ const _delete = async (req, res) => {
 }
 
 module.exports = {
-    create, get, getOne, _delete, getAll
+    create, get, getOne, _delete, getAll, getMyDatasets
 };

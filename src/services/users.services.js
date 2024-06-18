@@ -75,7 +75,14 @@ class UsersService {
             const count = await models.RelationshipUserModel.count({
                 where: {
                     id_user: idUser
-                }
+                },
+                include: [{
+                    model: models.Models,
+                    where: {
+                        status: 'Accepted',
+                        privated:'false'
+                    }
+                }]
             });
             return count;
         } catch (error) {
@@ -89,7 +96,14 @@ class UsersService {
             const count = await models.RelationshipUserDataset.count({
                 where: {
                     id_user: idUser
-                }
+                },
+                include: [{
+                    model: models.Datasets,
+                    where: {
+                        status: 'Accepted',
+                        privated:'false'
+                    }
+                }]
             });
             return count;
         } catch (error) {
@@ -103,7 +117,13 @@ class UsersService {
             const count = await models.RelationshipUserNew.count({
                 where: {
                     id_user: idUser
-                }
+                },
+                include: [{
+                    model: models.News,
+                    where: {
+                        status: 'Accepted',
+                    }
+                }]
             });
             return count;
         } catch (error) {
@@ -168,8 +188,6 @@ class UsersService {
             let token = jwt.sign({ user: user }, authConfig.secret, {
                 expiresIn: authConfig.expires
             });
-            // let token = data.token;
-            // Devolver los datos relevantes como un objeto
             return {
                 user: user,
                 token: token

@@ -23,10 +23,27 @@ class RelationshipUserModel {
                     {
                         model: models.Models,
                         as: 'models',
-                        where: {
-                            status: 'Accepted',
-                            privated: 'false'
+                        where:{
+                            status:'Accepted',
+                            privated:'false'
                         }
+                    }
+                ]
+            });
+            return { user };
+        } catch (error) {
+            console.error('Error fetching user and models:', error);
+            throw error;
+        }
+    }
+
+    async findMyModels(id) {
+        try {
+            const user = await models.Users.findByPk(id, {
+                include: [
+                    {
+                        model: models.Models,
+                        as: 'models',
                     }
                 ]
             });

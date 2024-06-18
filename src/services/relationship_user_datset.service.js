@@ -37,6 +37,23 @@ class RelationshipUserDataset {
         }
     }
 
+    async findMyDatasets(id) {
+        try {
+            const user = await models.Users.findByPk(id, {
+                include: [
+                    {
+                        model: models.Datasets,
+                        as: 'datasets',
+                    }
+                ]
+            });
+            return { user };
+        } catch (error) {
+            console.error('Error fetching user and models:', error);
+            throw error;
+        }
+    }
+
     async findOne(id, id2) {
         const res = await models.RelationshipUserDataset.findOne({
             where: {

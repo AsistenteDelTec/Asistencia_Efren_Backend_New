@@ -76,9 +76,33 @@ class ModelsService {
 
 
   async update(id, data) {
-    const model = await this.findOne(id);
-    const res = await model.update(data);
-    return res;
+    try {
+      const model = await this.findOne(id);
+      const updateModel = await model.update(data);
+
+      const modelData = {
+        id: id,
+        model_name: updateModel.model_name,
+        publish_date: updateModel.publish_date,
+        small_description: updateModel.small_description,
+        large_description: updateModel.large_description,
+        score: updateModel.score,
+        accuracy: updateModel.accuracy,
+        url_colab: updateModel.url_colab,
+        url_dataset: updateModel.url_dataset,
+        url_paper: updateModel.url_paper,
+        version: updateModel.version,
+        privated: updateModel.privated,
+        cont_views: updateModel.cont_views,
+        status: updateModel.status
+      };
+
+      return modelData
+
+    } catch (error) {
+      console.error('Error al actualizar el modelo:', error);
+      throw error;
+    }
   }
 
   async delete(id) {

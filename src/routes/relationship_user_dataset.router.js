@@ -6,6 +6,7 @@ router
 
     .get('/myDatasets/:id', relationDataset.getMyDatasets)
     .post('/', relationDataset.create)
+    .get('/', relationDataset.getAll)
     .get('/:id', relationDataset.get)
     .get('/:id/:id2', relationDataset.getOne)
     .delete('/:id/:id2', relationDataset._delete);

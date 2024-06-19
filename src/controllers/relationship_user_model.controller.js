@@ -24,7 +24,17 @@ const get = async (req, res) => {
 const getAll = async (req, res) => {
     try {
         const response = await service.findAll();
-        res.json({ success: true, data: response });
+        res.json(response);
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
+const getMyModels = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const response = await service.findMyModels(id);
+        res.json(response);
     } catch (error) {
         res.status(500).send({ success: false, message: error.message });
     }
@@ -54,5 +64,5 @@ const _delete = async (req, res) => {
 }
 
 module.exports = {
-    create, get, getOne, _delete, getAll
+    create, get, getOne, getMyModels,_delete, getAll
 };

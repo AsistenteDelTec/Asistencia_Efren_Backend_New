@@ -48,7 +48,27 @@ class RelationshipUserNews {
                 include: [
                     {
                         model: models.News,
-                        as: 'news' // Utiliza el alias 'models' que configuraste en la asociación
+                        as: 'news',
+                        where: {
+                            status: 'Accepted'
+                        }
+                    }
+                ]
+            });
+            return { user };
+        } catch (error) {
+            console.error('Error fetching user and models:', error);
+            throw error;
+        }
+    }
+
+    async findMyNews(id) {
+        try {
+            const user = await models.Users.findByPk(id, {
+                include: [
+                    {
+                        model: models.News,
+                        as: 'news',
                     }
                 ]
             });
@@ -72,6 +92,16 @@ class RelationshipUserNews {
         const model = await this.findOne(id, id2);
         await model.destroy();
         return { deleted: true };
+    }
+
+    async findAll() {
+        try {
+            const result = await models.RelationshipUserNew.findAll();
+            return result;
+        } catch (error) {
+            console.error('Error fetching all relationships:', error);
+            throw new Error('Failed to retrieve data');
+        }
     }
 }
 

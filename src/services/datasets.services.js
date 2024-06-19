@@ -1,4 +1,5 @@
 const { models } = require('../libs/sequelize');
+const { Op, fn, col } = require('sequelize');
 
 class DatasetsService {
     constructor() { }
@@ -22,7 +23,9 @@ class DatasetsService {
     }
 
     async find() {
-        const res = await models.Datasets.findAll();
+        const res = await models.Datasets.findAll({
+            order: [['id', 'ASC']] // Ordena por 'id' en orden ascendente
+        });
         return res;
     }
 
@@ -31,10 +34,56 @@ class DatasetsService {
         return res;
     }
 
+    async getPostsByYear(year) {
+        const results = await models.Datasets.findAll({
+            attributes: [
+                [fn('DATE_TRUNC', 'month', col('publish_date')), 'month'],
+                [fn('COUNT', col('id')), 'count'],
+            ],
+            where: {
+                publish_date: {
+                    [Op.between]: [`${year}-01-01`, `${year}-12-31`],
+                },
+                status: 'Accepted',
+                privated: 'false'
+            },
+            group: [fn('DATE_TRUNC', 'month', col('publish_date'))],
+            order: [[fn('DATE_TRUNC', 'month', col('publish_date')), 'ASC']],
+        });
+
+        const data = results.map(result => ({
+            month: result.dataValues.month,
+            count: result.dataValues.count,
+        }));
+
+        return (data)
+    }
+
     async update(id, data) {
-        const dataset = await this.findOne(id);
-        const res = await dataset.update(data);
-        return res;
+        try {
+            const dataset = await this.findOne(id);
+            const updateDataset = await dataset.update(data);
+
+            const datasetData = {
+                id: id,
+                dataset_name: updateDataset.dataset_name,
+                publish_date: updateDataset.publish_date,
+                description: updateDataset.description,
+                score: updateDataset.score,
+                url_source: updateDataset.url_source,
+                url_paper: updateDataset.url_paper,
+                version: updateDataset.version,
+                privated: updateDataset.privated,
+                cont_views: updateDataset.cont_views,
+                status: updateDataset.status
+            };
+
+            return datasetData
+
+        } catch (error) {
+            console.error('Error al actualizar el modelo:', error);
+            throw error;
+        }
     }
 
     async delete(id) {

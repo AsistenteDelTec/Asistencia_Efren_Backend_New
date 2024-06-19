@@ -10,10 +10,9 @@ const create = async (req, res) => {
     }
 }
 
-
 const getPostsByYear = async (req, res) => {
     try {
-        const {year} = req.params;
+        const { year } = req.params;
         const response = await service.getPostsByYear(year);
         res.json(response);
     } catch (error) {
@@ -41,6 +40,15 @@ const getById = async (req, res) => {
     }
 }
 
+const getTopModels = async (req, res) => {
+    try {
+        const response = await service.getTopRatedModels();
+        res.json(response);
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 const update = async (req, res) => {
     try {
         const { id } = req.params;
@@ -63,5 +71,5 @@ const _delete = async (req, res) => {
 }
 
 module.exports = {
-    create, get, getById, update, _delete, getPostsByYear
+    create, get, getById, update, getTopModels, _delete, getPostsByYear
 };

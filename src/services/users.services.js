@@ -1,8 +1,8 @@
 const { models } = require('../libs/sequelize');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const authConfig = require('../config/auth');
-const { Op } = require('sequelize');
+const bcrypt = require('bcrypt')
+const jwt = require('jsonwebtoken')
+const authConfig = require('../config/auth')
+const { Op, fn, col } = require('sequelize');
 const { sendVerificationEmail } = require('../services/email.services'); // Importar el servicio de email
 
 class UsersService {
@@ -71,7 +71,14 @@ class UsersService {
             const count = await models.RelationshipUserModel.count({
                 where: {
                     id_user: idUser
-                }
+                },
+                include: [{
+                    model: models.Models,
+                    where: {
+                        status: 'Accepted',
+                        privated:'false'
+                    }
+                }]
             });
             return count;
         } catch (error) {
@@ -85,7 +92,14 @@ class UsersService {
             const count = await models.RelationshipUserDataset.count({
                 where: {
                     id_user: idUser
-                }
+                },
+                include: [{
+                    model: models.Datasets,
+                    where: {
+                        status: 'Accepted',
+                        privated:'false'
+                    }
+                }]
             });
             return count;
         } catch (error) {
@@ -99,7 +113,13 @@ class UsersService {
             const count = await models.RelationshipUserNew.count({
                 where: {
                     id_user: idUser
-                }
+                },
+                include: [{
+                    model: models.News,
+                    where: {
+                        status: 'Accepted',
+                    }
+                }]
             });
             return count;
         } catch (error) {
@@ -120,6 +140,29 @@ class UsersService {
             console.error('Error al contar relaciones:', error);
             return null;
         }
+    }
+
+    async getUsersByYear(year) {
+        const results = await models.Users.findAll({
+            attributes: [
+                [fn('DATE_TRUNC', 'month', col('date_joined')), 'month'],
+                [fn('COUNT', col('id')), 'count'],
+            ],
+            where: {
+                date_joined: {
+                    [Op.between]: [`${year}-01-01`, `${year}-12-31`],
+                },
+            },
+            group: [fn('DATE_TRUNC', 'month', col('date_joined'))],
+            order: [[fn('DATE_TRUNC', 'month', col('date_joined')), 'ASC']],
+        });
+
+        const data = results.map(result => ({
+            month: result.dataValues.month,
+            count: result.dataValues.count,
+        }));
+
+        return (data)
     }
 
     async update(id, data) {

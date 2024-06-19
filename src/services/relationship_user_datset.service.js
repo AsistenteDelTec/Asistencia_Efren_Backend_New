@@ -50,7 +50,11 @@ class RelationshipUserDataset {
                 include: [
                     {
                         model: models.Datasets,
-                        as: 'datasets' // Utiliza el alias 'models' que configuraste en la asociación
+                        as: 'datasets',
+                        where: {
+                            status: 'Accepted',
+                            privated: 'false'
+                        }
                     }
                 ]
             });
@@ -62,19 +66,17 @@ class RelationshipUserDataset {
         }
     }
 
-    async findUser(id) {
+    async findMyDatasets(id) {
         try {
-            const user = await models.Datasets.findByPk(id, {
-                include:
-                {
-                    model: models.Users,
-                    as: 'user' // Utiliza el alias 'models' que configuraste en la asociación
-                }
-
+            const user = await models.Users.findByPk(id, {
+                include: [
+                    {
+                        model: models.Datasets,
+                        as: 'datasets',
+                    }
+                ]
             });
-
-            let userFound = user.user[0].dataValues
-            return { userFound };
+            return { user };
         } catch (error) {
             console.error('Error fetching user and models:', error);
             throw error;
@@ -94,6 +96,19 @@ class RelationshipUserDataset {
         const model = await this.findOne(id, id2);
         await model.destroy();
         return { deleted: true };
+<<<<<<< HEAD
+=======
+    }
+
+    async findAll() {
+        try {
+            const result = await models.RelationshipUserDataset.findAll();
+            return result;
+        } catch (error) {
+            console.error('Error fetching all relationships:', error);
+            throw new Error('Failed to retrieve data');
+        }
+>>>>>>> main
     }
 }
 

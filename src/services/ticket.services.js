@@ -4,17 +4,17 @@ const notificationsService = new NotificationsService();
 const { getIo } = require('../config/socket');
 
 class TicketService {
-  constructor() {}
+  constructor() { }
 
   async create(data) {
     try {
       const ticket = await models.Ticket.create(data);
-
+      const userFound = await models.Users.findByPk(data.id_user);
       // Crear notificación para los administradores
       const notification = await notificationsService.createNotification({
         id_user: data.id_user,
         category: 'TICKET',
-        message: `El usuario ${data.id_user} ha reportado un ticket: ${ticket.title}`,
+        message: `${userFound.fullname} ha realizado reporte.`,
         not_date: new Date(),
         to_admin: true // Indicar que esta notificación es para administradores
       });
@@ -26,7 +26,7 @@ class TicketService {
       // Emitir evento de notificación
       const io = getIo();
       io.emit('notification', {
-        userId: null, // Emitir notificación para todos los administradores
+        userId: notification.id_user, // Emitir notificación para todos los administradores
         message: notification.message,
         id: notification.id,
         date: new Date(notification.not_date).toLocaleDateString(),
@@ -60,11 +60,12 @@ class TicketService {
       // Crear notificación cuando el estado cambia
       if (data.status && data.status !== oldStatus) {
         const user = await models.Users.findByPk(model.id_user);
-        const justificationMessage = data.justification ? data.justification : 'No se proporcionó justificación.';
+        const justificationMessage = data.justification ? (`A continuación la justificación: ${data.justification}`) : 'No se proporcionó justificación.';
+
         const notification = await notificationsService.createNotification({
           id_user: model.id_user,
           category: 'TICKET',
-          message: `El estado de tu ticket "${model.title}" ha cambiado a ${data.status}. Justificación: ${justificationMessage}`,
+          message: `El estado de tu reporte ("${model.title}") ${(data.status == 'Pending' ? 'está pendiente' : (data.status == 'Accepted' ? 'ha sido aceptado' : 'ha sido rechazado'))}. ${justificationMessage}`,
           not_date: new Date(),
           to_admin: false // Indicar que esta notificación es para el usuario
         });
@@ -76,7 +77,7 @@ class TicketService {
         // Emitir evento de notificación para el usuario
         const io = getIo();
         io.emit('notification', {
-          userId: model.id_user,
+          id_user: model.id_user,
           message: notification.message,
           id: notification.id,
           date: new Date(notification.not_date).toLocaleDateString(),

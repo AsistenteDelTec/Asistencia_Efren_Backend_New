@@ -1,8 +1,16 @@
 const { models } = require('../libs/sequelize');
 const { Op, fn, col } = require('sequelize');
+const RelationshipUserNewService = require('./relationship_user_new.services');
+const ListFollowUsersService = require('./list_follow_users.services');
+const NotificationsService = require('./notifications.services');
+const { getIo } = require('../config/socket');
 
 class NewsService {
-    constructor() { }
+    constructor() {
+        this.listFollowUsersService = new ListFollowUsersService();
+        this.relationshipUserNewService = new RelationshipUserNewService();
+        this.notificationsService = new NotificationsService();
+    }
 
     async create(data) {
         const newsData = {
@@ -59,6 +67,7 @@ class NewsService {
     async update(id, data) {
         try {
             const news = await this.findOne(id);
+            const previousStatus = news.status;
             const updateNew = await news.update(data);
 
             const newsData = {
@@ -74,7 +83,32 @@ class NewsService {
                 cont_views: updateNew.cont_views,
                 status: updateNew.status
             };
+            if (previousStatus !== 'Accepted' && updateNew.status === 'Accepted') {
+                const gUser = await this.relationshipUserNewService.findUser(updateNew.id)
+                const followers = await this.listFollowUsersService.getFollowersOfAuthor(gUser.userFound.id);
 
+
+                for (const follower of followers) {
+                    const notification = await this.notificationsService.createNotification({
+                        id_user: follower,
+                        category: 'NEW',
+                        message: `${gUser.userFound.fullname} a publicado la noticia ${updateNew.news_name}.`,
+                        not_date: new Date(),
+                        to_admin: false
+                    });
+
+                    const io = getIo();
+                    io.emit('notification', {
+                        userId: notification.id_user,
+                        message: notification.message,
+                        id: notification.id,
+                        date: new Date(notification.not_date).toLocaleDateString(),
+                        time: new Date(notification.not_date).toLocaleTimeString(),
+                        category: notification.category,
+                        to_admin: false
+                    });
+                }
+            }
             return newsData
 
         } catch (error) {

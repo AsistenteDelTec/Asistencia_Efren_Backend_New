@@ -1,8 +1,16 @@
 const { models } = require('../libs/sequelize');
 const { Op, fn, col } = require('sequelize');
+const RelationshipUserModelService = require('./relationship_user_model.services');
+const ListFollowUsersService = require('./list_follow_users.services');
+const NotificationsService = require('./notifications.services');
+const { getIo } = require('../config/socket');
 
 class ModelsService {
-  constructor() { }
+  constructor() {
+    this.listFollowUsersService = new ListFollowUsersService();
+    this.relationshipUserModelService = new RelationshipUserModelService();
+    this.notificationsService = new NotificationsService();
+  }
 
   async create(data) {
     const modelData = {
@@ -27,7 +35,7 @@ class ModelsService {
 
   async find() {
     const res = await models.Models.findAll({
-      order: [['id', 'ASC']] // Ordena por 'id' en orden ascendente
+      order: [['id', 'ASC']]
     });
     return res;
   }
@@ -59,7 +67,7 @@ class ModelsService {
       count: result.dataValues.count,
     }));
 
-    return (data)
+    return data;
   }
 
   async getTopRatedModels() {
@@ -74,30 +82,57 @@ class ModelsService {
     return topModels;
   }
 
-
   async update(id, data) {
     try {
       const model = await this.findOne(id);
-      const updateModel = await model.update(data);
+      const previousStatus = model.status;
+      const updatedModel = await model.update(data);
 
       const modelData = {
         id: id,
-        model_name: updateModel.model_name,
-        publish_date: updateModel.publish_date,
-        small_description: updateModel.small_description,
-        large_description: updateModel.large_description,
-        score: updateModel.score,
-        accuracy: updateModel.accuracy,
-        url_colab: updateModel.url_colab,
-        url_dataset: updateModel.url_dataset,
-        url_paper: updateModel.url_paper,
-        version: updateModel.version,
-        privated: updateModel.privated,
-        cont_views: updateModel.cont_views,
-        status: updateModel.status
+        model_name: updatedModel.model_name,
+        publish_date: updatedModel.publish_date,
+        small_description: updatedModel.small_description,
+        large_description: updatedModel.large_description,
+        score: updatedModel.score,
+        accuracy: updatedModel.accuracy,
+        url_colab: updatedModel.url_colab,
+        url_dataset: updatedModel.url_dataset,
+        url_paper: updatedModel.url_paper,
+        version: updatedModel.version,
+        privated: updatedModel.privated,
+        cont_views: updatedModel.cont_views,
+        status: updatedModel.status
       };
 
-      return modelData
+      if (previousStatus !== 'Accepted' && updatedModel.status === 'Accepted') {
+        const gUser = await this.relationshipUserModelService.findUser(updatedModel.id)
+        const followers = await this.listFollowUsersService.getFollowersOfAuthor(gUser.userFound.id);
+
+
+        for (const follower of followers) {
+          const notification = await this.notificationsService.createNotification({
+            id_user: follower,
+            category: 'MODEL',
+            message: `${gUser.userFound.fullname} a publicado el modelo ${updatedModel.model_name}.`,
+            not_date: new Date(),
+            to_admin: false
+          });
+
+          const io = getIo();
+          io.emit('notification', {
+            userId: notification.id_user,
+            message: notification.message,
+            id: notification.id,
+            date: new Date(notification.not_date).toLocaleDateString(),
+            time: new Date(notification.not_date).toLocaleTimeString(),
+            category: notification.category,
+            to_admin: false
+          });
+        }
+      }
+
+      return modelData;
 
     } catch (error) {
       console.error('Error al actualizar el modelo:', error);

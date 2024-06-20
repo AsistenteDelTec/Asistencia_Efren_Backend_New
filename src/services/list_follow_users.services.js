@@ -5,7 +5,7 @@ const notificationsService = new NotificationsService();
 const { getIo } = require('../config/socket'); // Importa getIo del módulo de socket
 
 class ListFollowUsersService {
-    constructor() {}
+    constructor() { }
 
     async create(data) {
         const datos = {
@@ -15,7 +15,6 @@ class ListFollowUsersService {
             to_admin: false
         };
 
-        
         try {
             // Crear la relación de seguimiento
             const res = await models.ListFollowUsers.create(datos);
@@ -26,19 +25,20 @@ class ListFollowUsersService {
                 category: datos.category,
                 message: `${user.fullname} ha comenzado a seguirte.`,
                 not_date: new Date(),
-                to_admin:false
+                to_admin: false
             });
 
             // Emitir evento de notificación
             const io = getIo(); // Obtiene la instancia de io
             console.log('Socket.IO instance:', io); // Verificar si io está definido
             io.emit('notification', {
-                userId: datos.id_user_follow,
+                id_user: datos.id_user_follow,
                 message: notification.message,
+                category: datos.category,
                 id: notification.id,
                 date: new Date(notification.not_date).toLocaleDateString(),
                 time: new Date(notification.not_date).toLocaleTimeString(),
-                to_admin:false
+                to_admin: false
             });
 
             return res;
@@ -83,6 +83,24 @@ class ListFollowUsersService {
         const model = await this.findOne(id, id2);
         await model.destroy();
         return { deleted: true };
+    }
+
+    async getFollowersOfAuthor(authorId) {
+        const followers = await models.ListFollowUsers.findAll({
+            attributes: ['id_user'],
+            where: {
+                id_user_follow: authorId,
+                id_user: {
+                    [Op.ne]: authorId
+                }
+            },
+            include: [{
+                model: models.Users,
+                attributes: ['id']
+            }]
+        });
+
+        return followers.map(follower => follower.id_user);
     }
 }
 

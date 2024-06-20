@@ -1,8 +1,16 @@
 const { models } = require('../libs/sequelize');
 const { Op, fn, col } = require('sequelize');
+const RelationshipUserDataset = require('./relationship_user_datset.service');
+const ListFollowUsersService = require('./list_follow_users.services');
+const NotificationsService = require('./notifications.services');
+const { getIo } = require('../config/socket');
 
 class DatasetsService {
-    constructor() { }
+    constructor() {
+        this.listFollowUsersService = new ListFollowUsersService();
+        this.relationshipUserDataset = new RelationshipUserDataset();
+        this.notificationsService = new NotificationsService();
+    }
 
     async create(data) {
         const datasetData = {
@@ -62,6 +70,7 @@ class DatasetsService {
     async update(id, data) {
         try {
             const dataset = await this.findOne(id);
+            const previousStatus = dataset.status;
             const updateDataset = await dataset.update(data);
 
             const datasetData = {
@@ -77,6 +86,33 @@ class DatasetsService {
                 cont_views: updateDataset.cont_views,
                 status: updateDataset.status
             };
+
+            if (previousStatus !== 'Accepted' && updateDataset.status === 'Accepted') {
+                const gUser = await this.relationshipUserDataset.findUser(updateDataset.id)
+                const followers = await this.listFollowUsersService.getFollowersOfAuthor(gUser.userFound.id);
+
+
+                for (const follower of followers) {
+                    const notification = await this.notificationsService.createNotification({
+                        id_user: follower,
+                        category: 'DATASET',
+                        message: `${gUser.userFound.fullname} a publicado el set de datos ${updateDataset.dataset_name}.`,
+                        not_date: new Date(),
+                        to_admin: false
+                    });
+
+                    const io = getIo();
+                    io.emit('notification', {
+                        userId: notification.id_user,
+                        message: notification.message,
+                        id: notification.id,
+                        date: new Date(notification.not_date).toLocaleDateString(),
+                        time: new Date(notification.not_date).toLocaleTimeString(),
+                        category: notification.category,
+                        to_admin: false
+                    });
+                }
+            }
 
             return datasetData
 

@@ -180,7 +180,7 @@ class UsersService {
                 verified: updatedModel.verified,
                 user_role: updatedModel.user_role
             };
-
+            console.log("Usuario verificado: ", user)
             let token = this.generateToken(user)
             // let token = jwt.sign({ user: user }, authConfig.secret, {
             //     expiresIn: authConfig.expires

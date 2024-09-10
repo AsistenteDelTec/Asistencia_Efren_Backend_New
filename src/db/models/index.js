@@ -11,6 +11,9 @@ const { ListFavDatasets, ListFavDatasetsSchema } = require('./list_fav_datsets.m
 const { Ticket, TicketSchema } = require('../models/ticket.model');
 const { Notifications, NotificationsSchema } = require('./notifications.model');
 const { StatusNotification, StatusNotificationSchema } = require('./statusNotification.model');
+const { Categories, CategoriesSchema } = require('./category.model');
+const { RelationshipModelCategory, RelationshipModelCategorySchema} = require('./relationship_model_category.model')
+const { RelationshipDatasetCategory, RelationshipDatasetCategorySchema} = require('./relationship_dataset_category.model')
 
 function setupModels(sequelize) {
     Users.init(UsersSchema, Users.config(sequelize));
@@ -26,6 +29,11 @@ function setupModels(sequelize) {
     Ticket.init(TicketSchema, Ticket.config(sequelize));
     Notifications.init(NotificationsSchema, Notifications.config(sequelize)); // Inicializar Notification
     StatusNotification.init(StatusNotificationSchema, StatusNotification.config(sequelize)); // Inicializar StatusNotification
+    Categories.init(CategoriesSchema, Categories.config(sequelize)); // Inicializar StatusNotification
+    RelationshipModelCategory.init(RelationshipModelCategorySchema, RelationshipModelCategory.config(sequelize));
+    RelationshipDatasetCategory.init(RelationshipDatasetCategorySchema, RelationshipDatasetCategory.config(sequelize));
+
+
 
     // Definir relaciones
     Users.hasMany(ListFollowUsers, { foreignKey: 'id_user' });
@@ -87,6 +95,18 @@ function setupModels(sequelize) {
         as: 'user'
     });
 
+    Models.belongsToMany(Categories, {
+        through: RelationshipModelCategory,
+        foreignKey: 'id_model',
+        as: 'category'
+    });
+
+    Datasets.belongsToMany(Categories, {
+        through: RelationshipDatasetCategory,
+        foreignKey: 'id_dataset',
+        as: 'category'
+    });
+
     Datasets.belongsToMany(Users, {
         through: RelationshipUserDataset,
         foreignKey: 'id_dataset',
@@ -111,9 +131,27 @@ function setupModels(sequelize) {
         as: 'usersfav'
     });
 
+    Categories.belongsToMany(Models, {
+        through: RelationshipModelCategory,
+        foreignKey: 'id_category',
+        as:'model'
+    })
+
+    Categories.belongsToMany(Datasets, {
+        through: RelationshipDatasetCategory,
+        foreignKey: 'id_category',
+        as:'dataset'
+    })
+
 
     RelationshipUserModel.belongsTo(Users, { foreignKey: 'id_user' });
     RelationshipUserModel.belongsTo(Models, { foreignKey: 'id_model' });
+
+    RelationshipModelCategory.belongsTo(Categories, { foreignKey: 'id_category' });
+    RelationshipModelCategory.belongsTo(Models, { foreignKey: 'id_model' });
+
+    RelationshipDatasetCategory.belongsTo(Categories, { foreignKey: 'id_category' });
+    RelationshipDatasetCategory.belongsTo(Datasets, { foreignKey: 'id_dataset' });
 
     RelationshipUserDataset.belongsTo(Users, { foreignKey: 'id_user' });
     RelationshipUserDataset.belongsTo(Datasets, { foreignKey: 'id_dataset' });

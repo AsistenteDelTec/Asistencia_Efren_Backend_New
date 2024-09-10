@@ -27,8 +27,10 @@ router
       
           if (user) {
             await service.update(user.id, { verified: true });
+            console.log('Email verificado exitosamente')
             res.send('Email verificado exitosamente');
           } else {
+            console.log('Usuario no encontrado')
             res.send('Usuario no encontrado');
           }
         } catch (error) {

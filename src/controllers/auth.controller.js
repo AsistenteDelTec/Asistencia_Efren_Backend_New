@@ -58,38 +58,34 @@ module.exports = {
     signIn: async (req, res) => {
         try {
             const { email, password } = req.body;
-            const response = await service.findOneByEmail(email);
-            if (!response) {
-                return res.status(404).json({ msg: "Usuario con este correo no encontrado" });
+            const user = await service.findOneByEmail(email);
+    
+            if (!user) {
+                return res.status(404).json({ success: false, msg: "No existe un usuario con este correo electrónico" });
+            }
+    
+            const { password: hashedPassword, ...userDetails } = user;
+    
+            if (bcrypt.compareSync(password, hashedPassword)) {
+                const token = jwt.sign({ user: userDetails }, authConfig.secret, {
+                    expiresIn: authConfig.expires
+                });
+                return res.json({
+                    success: true,
+                    user: userDetails,
+                    token: token
+                });
             } else {
-                const user = {
-                    id: response.id,
-                    username: response.username,
-                    fullname: response.fullname,
-                    password: response.password,
-                    email: response.email,
-                    date_joined: response.date_joined,
-                    verified: response.verified,
-                    user_role: response.user_role
-                };
-                if (bcrypt.compareSync(password, user.password)) {
-                    let token = jwt.sign({ user: user }, authConfig.secret, {
-                        expiresIn: authConfig.expires
-                    });
-                    return res.json({
-                        user: user,
-                        token: token
-                    });
-                } else {
-                    return res.status(401).json({
-                        msg: "Contraseña incorrecta."
-                    });
-                }
+                return res.status(401).json({
+                    success: false, 
+                    msg: "Contraseña incorrecta"
+                });
             }
         } catch (error) {
             return res.status(500).json({ success: false, message: error.message });
         }
     },
+    
 
     signInWithGoogle: async (req, res) => {
         passport.authenticate('google', { scope: ['profile', 'email'] });
@@ -110,7 +106,7 @@ module.exports = {
             res.json({
                 user: response.user,
                 token: response.token,
-                message: '¡Felicidades! Tu registro ha sido exitoso. Por favor, revisa tu correo electrónico y sigue el enlace de confirmación para completar el proceso de registro'
+                message: 'Registro exitoso'
             });
         } catch (error) {
             res.status(500).send({ success: false, message: error.message });
@@ -127,13 +123,13 @@ module.exports = {
             console.log(`Attempt to send OTP with email: ${req.body.email}`);
             const { email } = req.body;
             if (!email) {
-                return res.status(400).json({ msg: "Se requiere un Email" });
+                return res.status(400).json({ success: false, msg: "Se requiere un Email" });
             }
     
             const user = await service.findOneByEmail(email);
             if (!user) {
                 console.log(`User not found for email: ${email}`);
-                return res.status(404).json({ msg: "No existe un usuario con este correo electrónico" });
+                return res.status(404).json({ success: false, msg: "No existe un usuario con este correo electrónico" });
             }
     
             const otp = otpService.generateOtp();
@@ -145,7 +141,7 @@ module.exports = {
     
             await sendOTPEmail(email, otp);
     
-            res.json({ success: true, msg: "OTP enviado correctamente" });
+            res.json({ success: true, msg: `Se ha enviado un código OTP al correo ${email}` });
         } catch (error) {
             console.error("Error in sendOtp:", error); 
             res.status(500).json({ success: false, message: error.message });
@@ -158,23 +154,21 @@ module.exports = {
             const { email, otp } = req.body;
       
             if (!email || !otp) {
-                return res.status(400).json({ msg: "Se requiere un Email y un OTP" });
+                return res.status(400).json({ success: false, msg: "Se requiere un Email y un OTP" });
             }
             
             const user = await service.findOneByEmail(email);
             if (!user) {
                 console.log(`User not found for email: ${email}`);
-                return res.status(404).json({ msg: "No existe un usuario con este correo electrónico" });
+                return res.status(404).json({ success: false, msg: "No existe un usuario con este correo electrónico" });
             }
             
-            // Use otpService to verify OTP with email and OTP
             const otpVerification = await otpService.verifyOtp(email, otp);
             
             if (!otpVerification.success) {
                 return res.status(400).json({ msg: otpVerification.message });
             }
             
-            // OTP is valid and matches
             return res.json({ success: true, msg: "OTP verificado correctamente" });
       
         } catch (error) {

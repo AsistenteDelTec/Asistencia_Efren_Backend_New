@@ -75,7 +75,7 @@ router
     })
     .post('/forgot-password', authController.sendOtp) 
     .post('/verify-otp', authController.verifyOtp)
-    .post('/reset-password', async (req, res) => {  // Updated reset-password route
+    .post('/reset-password', async (req, res) => { 
       const { email } = req.body;
 
       try {

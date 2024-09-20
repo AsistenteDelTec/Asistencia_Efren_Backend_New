@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const authConfig = require('../config/auth')
 const { Op, fn, col } = require('sequelize');
-const { sendVerificationEmail } = require('../services/email.services'); // Importar el servicio de email
+const { sendVerificationEmail, sendNewPasswordEmail } = require('../services/email.services'); // Importar el servicio de email
 
 class UsersService {
     constructor() { }
@@ -211,6 +211,50 @@ class UsersService {
         };
 
         return jwt.sign(payload, authConfig.secret, { expiresIn: authConfig.expires });
+    }
+
+    async resetPassword(email) {
+        try {
+            const user = await this.findOneByEmail(email);
+            if (!user) {
+                throw new Error('No existe un usuario con este correo electrónico');
+            }
+
+            const generateRandomPassword = () => {
+                const length = 8;
+                const lowercase = 'bcdfghjklmnpqrstvwxyz'; // Excluding 'aeiou'
+                const uppercase = 'BCDFGHJKLMNPQRSTVWXYZ'; // Excluding 'AEIOU'
+                const numbers = '0123456789';
+                const symbols = '!$%&()?+-@#*_:<>.,';
+                
+                let password = '';
+            
+                password += lowercase.charAt(Math.floor(Math.random() * lowercase.length));
+                password += uppercase.charAt(Math.floor(Math.random() * uppercase.length));
+                password += numbers.charAt(Math.floor(Math.random() * numbers.length));
+                password += symbols.charAt(Math.floor(Math.random() * symbols.length));
+            
+                const allChars = lowercase + uppercase + numbers + symbols;
+                for (let i = password.length; i < length; ++i) {
+                    password += allChars.charAt(Math.floor(Math.random() * allChars.length));
+                }
+            
+                return password.split('').sort(() => Math.random() - 0.5).join('');
+            };
+
+            const newPassword = generateRandomPassword();
+
+            const hashedPassword = bcrypt.hashSync(newPassword, parseInt(authConfig.rounds));
+
+            await user.update({ password: hashedPassword });
+
+            await sendNewPasswordEmail(user.email, newPassword);
+
+            return { success: true, message: 'Se ha restablecido la contraseña' };
+        } catch (error) {
+            console.error('Error resetting password:', error);
+            throw error;
+        }
     }
 }
 

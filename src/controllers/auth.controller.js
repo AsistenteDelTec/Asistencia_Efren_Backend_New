@@ -6,7 +6,9 @@ const jwt = require('jsonwebtoken');
 const authConfig = require('../config/auth');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const { sendVerificationEmail } = require('../services/email.services'); // Importar el servicio de email
+const { sendVerificationEmail, sendOTPEmail, sendResetPasswordEmail } = require('../services/email.services'); // Import email service
+const OtpService = require('../services/otp.services'); 
+const otpService = new OtpService();
 
 // Serializar y deserializar usuario
 passport.serializeUser((user, done) => {
@@ -15,7 +17,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
     try {
-        const user = await service.findOne(id);
+        const user = await user.findOne(id);
         done(null, user);
     } catch (err) {
         done(err);
@@ -108,7 +110,7 @@ module.exports = {
             res.json({
                 user: response.user,
                 token: response.token,
-                message: 'Por favor, verifica tu correo electrónico.'
+                message: '¡Felicidades! Tu registro ha sido exitoso. Por favor, revisa tu correo electrónico y sigue el enlace de confirmación para completar el proceso de registro'
             });
         } catch (error) {
             res.status(500).send({ success: false, message: error.message });
@@ -118,5 +120,66 @@ module.exports = {
     googleCallback: async (req, res) => {
         const token = jwt.sign({ user: req.user }, authConfig.secret, { expiresIn: authConfig.expires });
         res.json({ token: token, user: req.user });
-    }
+    },
+
+    sendOtp: async (req, res) => {
+        try {
+            console.log(`Attempt to send OTP with email: ${req.body.email}`);
+            const { email } = req.body;
+            if (!email) {
+                return res.status(400).json({ msg: "Se requiere un Email" });
+            }
+    
+            const user = await service.findOneByEmail(email);
+            if (!user) {
+                console.log(`User not found for email: ${email}`);
+                return res.status(404).json({ msg: "No existe un usuario con este correo electrónico" });
+            }
+    
+            const otp = otpService.generateOtp();
+            const saveResponse = await otpService.saveOtp(email, otp, user);
+    
+            if (!saveResponse.success) {
+                return res.status(500).json({ msg: saveResponse.message });
+            }
+    
+            await sendOTPEmail(email, otp);
+    
+            res.json({ success: true, msg: "OTP enviado correctamente" });
+        } catch (error) {
+            console.error("Error in sendOtp:", error); 
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+
+    verifyOtp: async (req, res) => {
+        try {
+            console.log(`Attempt to verify OTP with email: ${req.body.email}`);
+            const { email, otp } = req.body;
+      
+            if (!email || !otp) {
+                return res.status(400).json({ msg: "Se requiere un Email y un OTP" });
+            }
+            
+            const user = await service.findOneByEmail(email);
+            if (!user) {
+                console.log(`User not found for email: ${email}`);
+                return res.status(404).json({ msg: "No existe un usuario con este correo electrónico" });
+            }
+            
+            // Use otpService to verify OTP with email and OTP
+            const otpVerification = await otpService.verifyOtp(email, otp);
+            
+            if (!otpVerification.success) {
+                return res.status(400).json({ msg: otpVerification.message });
+            }
+            
+            // OTP is valid and matches
+            return res.json({ success: true, msg: "OTP verificado correctamente" });
+      
+        } catch (error) {
+            console.error("Error in verifyOtp:", error);
+            return res.status(500).json({ success: false, msg: error.message });
+        }
+    },
 };

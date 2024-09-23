@@ -217,7 +217,7 @@ class UsersService {
         try {
             const user = await this.findOneByEmail(email);
             if (!user) {
-                throw new Error('No existe un usuario con este correo electrónico');
+                throw new Error('No existe un usuario con este correo electrónico.');
             }
 
             const generateRandomPassword = () => {
@@ -250,7 +250,7 @@ class UsersService {
 
             await sendNewPasswordEmail(user.email, newPassword);
 
-            return { success: true, message: 'Se ha restablecido la contraseña' };
+            return { success: true, message: 'Se ha restablecido la contraseña.' };
         } catch (error) {
             console.error('Error resetting password:', error);
             throw error;

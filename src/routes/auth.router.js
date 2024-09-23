@@ -4,7 +4,7 @@ const router = express.Router();
 const authController = require('../controllers/auth.controller');
 const jwt = require('jsonwebtoken');
 const authConfig = require('../config/auth');
-const UsersService = require('../services/users.services'); // Importa el servicio de usuarios
+const UsersService = require('../services/users.services'); 
 const service = new UsersService();
 
 router
@@ -15,7 +15,7 @@ router
         passport.authenticate('google', { failureRedirect: '/login', session: false }),
         (req, res) => {
             const token = jwt.sign({ user: req.user }, authConfig.secret, { expiresIn: authConfig.expires });
-            res.redirect(`http://localhost:5173/login/success?token=${token}`); // Redirect to frontend with token
+            res.redirect(`http://localhost:5173/login/success?token=${token}`);
         }
     )
     .get('/verify-email', async (req, res) => {
@@ -59,7 +59,7 @@ router
                 );
             }
         } catch (error) {
-            console.error('Error al verificar el token:', error); // Agregar log de error
+            console.error('Error al verificar el token:', error);
             res.send(
                 `
                 <html>
@@ -82,9 +82,9 @@ router
           const result = await service.resetPassword(email);
 
           if (result) {
-            res.status(200).json({ success: true, message: 'Se ha restablecido la contraseña' });
+            res.status(200).json({ success: true, message: 'Se ha restablecido la contraseña.' });
         } else {
-            res.status(400).json({ success: false, message: 'Hubo un error al restablecer la contraseña' });
+            res.status(400).json({ success: false, message: 'Hubo un error al restablecer la contraseña.' });
         }
       } catch (error) {
           console.error('Error during password reset:', error);

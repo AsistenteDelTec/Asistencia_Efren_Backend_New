@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 const authConfig = require('../config/auth');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const { sendVerificationEmail, sendOTPEmail, sendResetPasswordEmail } = require('../services/email.services'); // Import email service
+const { sendVerificationEmail, sendOTPEmail } = require('../services/email.services'); // Import email service
 const OtpService = require('../services/otp.services'); 
 const otpService = new OtpService();
 
@@ -72,7 +72,7 @@ module.exports = {
                 });
                 return res.json({
                     success: true,
-                    user: userDetails,
+                    user: user,
                     token: token
                 });
             } else {

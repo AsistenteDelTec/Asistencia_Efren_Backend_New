@@ -1,5 +1,4 @@
 const { Model, DataTypes } = require('sequelize');
-const sequelize = require('../../libs/sequelize'); // Importa la configuración correcta para Sequelize
 
 const MODELS_TABLE = 'models';
 
@@ -49,17 +48,9 @@ const ModelsSchema = {
         type: DataTypes.INTEGER,
         allowNull: false
     },
-    url_colab: {
-        type: DataTypes.STRING(200),
-        allowNull: false
-    },
-    url_dataset: {
-        type: DataTypes.STRING(200),
-        allowNull: true
-    },
-    url_paper: {
-        type: DataTypes.STRING(200),
-        allowNull: true
+    url_colab: {  
+        type: DataTypes.STRING,  
+        allowNull: false  
     },
     version: {
         type: DataTypes.STRING(10),

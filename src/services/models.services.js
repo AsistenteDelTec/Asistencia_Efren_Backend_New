@@ -3,35 +3,65 @@ const { Op, fn, col } = require('sequelize');
 const RelationshipUserModelService = require('./relationship_user_model.services');
 const ListFollowUsersService = require('./list_follow_users.services');
 const NotificationsService = require('./notifications.services');
+const RelationshipModelUrlDatasetService = require('./relationship_model_url_dataset.services'); 
+const RelationshipModelUrlPaperService = require('./relationship_model_url_paper.services');   
 const { getIo } = require('../config/socket');
 
 class ModelsService {
-  constructor() {
-    this.listFollowUsersService = new ListFollowUsersService();
-    this.relationshipUserModelService = new RelationshipUserModelService();
-    this.notificationsService = new NotificationsService();
-  }
+    constructor() {
+      this.listFollowUsersService = new ListFollowUsersService();
+      this.relationshipUserModelService = new RelationshipUserModelService();
+      this.notificationsService = new NotificationsService();
+      this.datasetUrlService = new RelationshipModelUrlDatasetService(); 
+      this.paperUrlService = new RelationshipModelUrlPaperService(); 
+    }
 
-  async create(data) {
+    async create(data) {
     const modelData = {
-      model_name: data.body.model_name,
-      publish_date: data.body.publish_date,
-      small_description: data.body.small_description,
-      large_description: data.body.large_description,
-      score: data.body.score,
-      accuracy: data.body.accuracy,
-      url_colab: data.body.url_colab,
-      url_dataset: data.body.url_dataset,
-      url_paper: data.body.url_paper,
-      version: data.body.version,
-      privated: data.body.privated,
-      cont_views: data.body.cont_views,
-      status: data.body.status
+        model_name: data.body.model_name,
+        publish_date: new Date(),
+        small_description: data.body.small_description,
+        large_description: data.body.large_description,
+        score: data.body.score,
+        accuracy: data.body.accuracy,
+        url_colab: data.body.url_colab,
+        version: data.body.version,
+        privated: data.body.privated,
+        cont_views: data.body.cont_views,
+        status: data.body.status,
     };
 
     const res = await models.Models.create(modelData);
+
+    if (data.body.url_datasets && Array.isArray(data.body.url_datasets)) {
+        try {
+            await Promise.all(
+                data.body.url_datasets.map(async (datasetUrl) => {
+                    await this.datasetUrlService.addUrl(res.id, datasetUrl);
+                })
+            );
+        } catch (error) {
+            console.error('Error adding dataset URLs:', error);
+            throw new Error('Error adding dataset URLs');
+        }
+    }
+
+    if (data.body.url_papers && Array.isArray(data.body.url_papers)) {
+        try {
+            await Promise.all(
+                data.body.url_papers.map(async (paperUrl) => {
+                    await this.paperUrlService.addUrl(res.id, paperUrl);
+                })
+            );
+        } catch (error) {
+            console.error('Error adding paper URLs:', error);
+            throw new Error('Error adding paper URLs');
+        }
+    }
+
     return res;
   }
+
 
   async find() {
     const res = await models.Models.findAll({
@@ -106,15 +136,14 @@ class ModelsService {
       };
 
       if (previousStatus !== 'Accepted' && updatedModel.status === 'Accepted') {
-        const gUser = await this.relationshipUserModelService.findUser(updatedModel.id)
+        const gUser = await this.relationshipUserModelService.findUser(updatedModel.id);
         const followers = await this.listFollowUsersService.getFollowersOfAuthor(gUser.userFound.id);
-
 
         for (const follower of followers) {
           const notification = await this.notificationsService.createNotification({
             id_user: follower,
             category: 'MODEL',
-            message: `${gUser.userFound.fullname} a publicado el modelo ${updatedModel.model_name}.`,
+            message: `${gUser.userFound.fullname} ha publicado el modelo ${updatedModel.model_name}.`,
             not_date: new Date(),
             to_admin: false
           });
@@ -133,7 +162,6 @@ class ModelsService {
       }
 
       return modelData;
-
     } catch (error) {
       console.error('Error al actualizar el modelo:', error);
       throw error;

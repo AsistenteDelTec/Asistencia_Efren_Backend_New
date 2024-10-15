@@ -28,10 +28,8 @@ class RelationshipDatasetCategory {
                     }
                 ]
             });
-            // Verificamos que haya categorías encontradas
             if (!categories) {
                 return []
-                ; // O puedes devolver un mensaje más personalizado
             }
 
             return categories.category;

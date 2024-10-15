@@ -29,7 +29,7 @@ class RelationshipModelCategory {
                 ]
             });
             console.log(categories)
-            return categories.category;
+            return categories?categories.category:[];
         } catch (error) {
             console.error('Error fetching categories:', error);
             throw error;

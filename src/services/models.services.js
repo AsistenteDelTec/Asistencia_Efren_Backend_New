@@ -1,5 +1,5 @@
 const { models } = require('../libs/sequelize');
-const { Op, fn, col } = require('sequelize');
+const { Op, fn, col, Sequelize } = require('sequelize');
 const RelationshipUserModelService = require('./relationship_user_model.services');
 const ListFollowUsersService = require('./list_follow_users.services');
 const NotificationsService = require('./notifications.services');
@@ -33,12 +33,93 @@ class ModelsService {
     return res;
   }
 
-  async find() {
-    const res = await models.Models.findAll({
-      order: [['id', 'ASC']]
-    });
-    return res;
+  // async find() {
+  //   try{
+  //     const res = await models.Models.findAll({
+  //       order: [['id', 'ASC']],
+  //       include: [
+  //         {
+  //             model: models.Categories,
+  //             as: 'category',
+  //             where: { visible: true }, // Filtra por categorías visibles
+  //             required: false // This makes the join a LEFT JOIN, including datasets without a category
+  //         },
+  //         {
+  //             model: models.Users,
+  //             as: 'user',
+  //             attributes: ['fullname']
+  //         }
+  //       ],
+        
+  //     });
+  //     return res;
+  //   } catch (error) {
+  //     console.error('Error fetching data:', error);
+  //     throw error; // Propagate the error if needed
+  //   }
+  // }
+
+  async find({ page = 1, limit = 10000, search = '', category, status='Accepted', privated=false }) {
+    try {
+      console.log("Categoria recibida: ", category)
+      const offset = (page - 1) * limit;
+
+      // Condiciones del where principal
+      const whereConditions = {
+        [Op.and]: [
+          { model_name: { [Op.iLike]: `%${search}%`} }, // Filtrar por nombre del modelo
+          { status },                      // Solo modelos con status 'Accepted'
+          { privated }                          // Solo modelos que no sean privados
+        ]
+      };
+
+      // Si hay un category, agregarlo a las condiciones del where
+      if (category) {
+        whereConditions[Op.and].push(
+          Sequelize.literal(`EXISTS (SELECT 1 FROM "relationship_model_category" AS "RelationshipModelCategory" WHERE "RelationshipModelCategory"."id_model" = "Models"."id" AND "RelationshipModelCategory"."id_category" = ${category})`)
+        );
+      }
+  
+      const res = await models.Models.findAndCountAll({
+        include: [
+          {
+            model: models.Categories,
+            as: 'category',
+            where: { visible: true},   // Filtra por categorías visibles
+            required:false
+          },
+          {
+            model: models.Users,
+            as: 'user',
+            attributes: ['fullname'],
+          },
+        ],
+        
+        where:whereConditions,
+        limit, // Limita los resultados devueltos
+        offset, // Define desde qué registro iniciar
+        order: [['id', 'ASC']],
+        distinct: true  // Asegura que el conteo sea de modelos únicos, no duplicados por las categorías
+      });
+      
+      console.log({
+        totalItems: res.count,
+        totalPages: Math.ceil(res.count / limit),
+        currentPage: page,
+        models: res.rows,  // Modelos devueltos
+      })
+      return {
+        totalItems: res.count,
+        totalPages: Math.ceil(res.count / limit),
+        currentPage: page,
+        models: res.rows,  // Modelos devueltos
+      };
+    } catch (error) {
+      console.error('Error fetching data with pagination:', error);
+      throw error;
+    }
   }
+  
 
   async findOne(id) {
     const res = await models.Models.findByPk(id);

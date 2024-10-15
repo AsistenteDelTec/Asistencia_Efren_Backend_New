@@ -95,6 +95,7 @@ function setupModels(sequelize) {
         as: 'user'
     });
 
+
     Models.belongsToMany(Categories, {
         through: RelationshipModelCategory,
         foreignKey: 'id_model',

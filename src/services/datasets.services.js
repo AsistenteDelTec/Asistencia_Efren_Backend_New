@@ -31,10 +31,29 @@ class DatasetsService {
     }
 
     async find() {
-        const res = await models.Datasets.findAll({
-            order: [['id', 'ASC']] // Ordena por 'id' en orden ascendente
-        });
-        return res;
+        try{
+            const res = await models.Datasets.findAll({
+              order: [['id', 'ASC']],
+              include: [
+                {
+                    model: models.Categories,
+                    as: 'category',
+                    where: { visible: true }, // Filtra por categorías visibles
+                    required: false // This makes the join a LEFT JOIN, including datasets without a category
+                },
+                {
+                    model: models.Users,
+                    as: 'user',
+                    attributes: ['fullname']
+                }
+              ],
+              
+            });
+            return res;
+          } catch (error) {
+          console.error('Error fetching data:', error);
+          throw error; // Propagate the error if needed
+        }
     }
 
     async findOne(id) {

@@ -6,7 +6,9 @@ const jwt = require('jsonwebtoken');
 const authConfig = require('../config/auth');
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const { sendVerificationEmail } = require('../services/email.services'); // Importar el servicio de email
+const { sendVerificationEmail, sendOTPEmail } = require('../services/email.services'); // Import email service
+const OtpService = require('../services/otp.services'); 
+const otpService = new OtpService();
 
 // Serializar y deserializar usuario
 passport.serializeUser((user, done) => {
@@ -15,7 +17,7 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
     try {
-        const user = await service.findOne(id);
+        const user = await user.findOne(id);
         done(null, user);
     } catch (err) {
         done(err);
@@ -56,38 +58,34 @@ module.exports = {
     signIn: async (req, res) => {
         try {
             const { email, password } = req.body;
-            const response = await service.findOneByEmail(email);
-            if (!response) {
-                return res.status(404).json({ msg: "Usuario con este correo no encontrado" });
+            const user = await service.findOneByEmail(email);
+    
+            if (!user) {
+                return res.status(404).json({ success: false, msg: "No existe un usuario con este correo electrónico." });
+            }
+    
+            const { password: hashedPassword, ...userDetails } = user;
+    
+            if (bcrypt.compareSync(password, hashedPassword)) {
+                const token = jwt.sign({ user: userDetails }, authConfig.secret, {
+                    expiresIn: authConfig.expires
+                });
+                return res.json({
+                    success: true,
+                    user: user,
+                    token: token
+                });
             } else {
-                const user = {
-                    id: response.id,
-                    username: response.username,
-                    fullname: response.fullname,
-                    password: response.password,
-                    email: response.email,
-                    date_joined: response.date_joined,
-                    verified: response.verified,
-                    user_role: response.user_role
-                };
-                if (bcrypt.compareSync(password, user.password)) {
-                    let token = jwt.sign({ user: user }, authConfig.secret, {
-                        expiresIn: authConfig.expires
-                    });
-                    return res.json({
-                        user: user,
-                        token: token
-                    });
-                } else {
-                    return res.status(401).json({
-                        msg: "Contraseña incorrecta."
-                    });
-                }
+                return res.status(401).json({
+                    success: false, 
+                    msg: "Contraseña incorrecta."
+                });
             }
         } catch (error) {
             return res.status(500).json({ success: false, message: error.message });
         }
     },
+    
 
     signInWithGoogle: async (req, res) => {
         passport.authenticate('google', { scope: ['profile', 'email'] });
@@ -95,28 +93,96 @@ module.exports = {
 
     signUp: async (req, res) => {
         try {
+            const { email } = req.body;
+
+            const existingUser = await service.findOneByEmail(email);
+            if (existingUser) {
+                return res.status(400).json({
+                    success: false,
+                    msg: 'Ya existe un usuario con este correo electrónico.'
+                });
+            }
+            
             const response = await service.create(req);
 
-            // Crear token de verificación
             let token = jwt.sign({ email: response.user.email }, authConfig.secret, {
-                expiresIn: '1h' // Expira en 1 hora
+                expiresIn: '1h'
             });
 
-            // Enviar email de verificación
             sendVerificationEmail(response.user.email, token);
 
             res.json({
+                success: true,
                 user: response.user,
                 token: response.token,
-                message: 'Por favor, verifica tu correo electrónico.'
+                msg: `Registro exitoso. \nSe ha enviado un correo electrónico a la dirección ${email}. \nSiga las instrucciones para terminar su proceso de registro.`
             });
         } catch (error) {
-            res.status(500).send({ success: false, message: error.message });
+            res.status(500).send({ success: false, msg: error.message });
         }
     },
 
     googleCallback: async (req, res) => {
         const token = jwt.sign({ user: req.user }, authConfig.secret, { expiresIn: authConfig.expires });
         res.json({ token: token, user: req.user });
-    }
+    },
+
+    sendOtp: async (req, res) => {
+        try {
+            console.log(`Attempt to send OTP with email: ${req.body.email}`);
+            const { email } = req.body;
+            if (!email) {
+                return res.status(400).json({ success: false, msg: "Se requiere un Email." });
+            }
+    
+            const user = await service.findOneByEmail(email);
+            if (!user) {
+                console.log(`User not found for email: ${email}`);
+                return res.status(404).json({ success: false, msg: "No existe un usuario con este correo electrónico." });
+            }
+    
+            const otp = otpService.generateOtp();
+            const saveResponse = await otpService.saveOtp(email, otp, user);
+    
+            if (!saveResponse.success) {
+                return res.status(500).json({ msg: saveResponse.message });
+            }
+    
+            await sendOTPEmail(email, otp);
+    
+            res.json({ success: true, msg: `Se ha enviado un código OTP al correo ${email}.` });
+        } catch (error) {
+            console.error("Error in sendOtp:", error); 
+            res.status(500).json({ success: false, message: error.message });
+        }
+    },
+
+    verifyOtp: async (req, res) => {
+        try {
+            console.log(`Attempt to verify OTP with email: ${req.body.email}`);
+            const { email, otp } = req.body;
+      
+            if (!email || !otp) {
+                return res.status(400).json({ success: false, msg: "Se requiere un Email y un OTP." });
+            }
+            
+            const user = await service.findOneByEmail(email);
+            if (!user) {
+                console.log(`User not found for email: ${email}`);
+                return res.status(404).json({ success: false, msg: "No existe un usuario con este correo electrónico." });
+            }
+            
+            const otpVerification = await otpService.verifyOtp(email, otp);
+            
+            if (!otpVerification.success) {
+                return res.status(400).json({ msg: otpVerification.message });
+            }
+            
+            return res.json({ success: true, msg: "OTP verificado correctamente." });
+      
+        } catch (error) {
+            console.error("Error in verifyOtp:", error);
+            return res.status(500).json({ success: false, msg: error.message });
+        }
+    },
 };

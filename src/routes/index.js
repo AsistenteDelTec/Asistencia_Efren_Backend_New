@@ -15,6 +15,8 @@ const authRouter = require('./auth.router');
 const ticketRouter = require('./ticket.router');
 const notificationsRouter = require('./notifications.router');
 const categories = require('./categories.router');
+const relationshipModelUrlDataset = require('./relationship_model_url_dataset.router');
+const relationshipModelUrlPaper = require('./relationship_model_url_paper.router');
 
 function routerApi(app) {
     const router = express.Router();
@@ -34,7 +36,9 @@ function routerApi(app) {
     router.use('/auth',authRouter);
     router.use('/ticket',ticketRouter);
     router.use('/notifications', notificationsRouter);
-    router.use('/categories', categories)
+    router.use('/categories', categories);
+    router.use('/relationshipModelUrlDataset', relationshipModelUrlDataset);
+    router.use('/relationshipModelUrlPaper', relationshipModelUrlPaper);
 }
 
 module.exports = routerApi;

@@ -3,33 +3,60 @@ const { Op, fn, col, Sequelize } = require('sequelize');
 const RelationshipUserModelService = require('./relationship_user_model.services');
 const ListFollowUsersService = require('./list_follow_users.services');
 const NotificationsService = require('./notifications.services');
-const { getIo } = require('../config/socket');
+const RelationshipModelUrlDatasetService = require('./relationship_model_url_dataset.services'); 
+const RelationshipModelUrlPaperService = require('./relationship_model_url_paper.services');   
 
 class ModelsService {
   constructor() {
     this.listFollowUsersService = new ListFollowUsersService();
     this.relationshipUserModelService = new RelationshipUserModelService();
     this.notificationsService = new NotificationsService();
+    this.datasetUrlService = new RelationshipModelUrlDatasetService(); 
+    this.paperUrlService = new RelationshipModelUrlPaperService(); 
   }
 
   async create(data) {
     const modelData = {
-      model_name: data.body.model_name,
-      publish_date: data.body.publish_date,
-      small_description: data.body.small_description,
-      large_description: data.body.large_description,
-      score: data.body.score,
-      accuracy: data.body.accuracy,
-      url_colab: data.body.url_colab,
-      url_dataset: data.body.url_dataset,
-      url_paper: data.body.url_paper,
-      version: data.body.version,
-      privated: data.body.privated,
-      cont_views: data.body.cont_views,
-      status: data.body.status
+        model_name: data.body.model_name,
+        publish_date: new Date(),
+        small_description: data.body.small_description,
+        large_description: data.body.large_description,
+        score: 0,
+        accuracy: data.body.accuracy,
+        url_colab: data.body.url_colab,
+        version: '1.0.0',
+        privated: false,
+        cont_views: 0,
+        status: 'Pending',
     };
 
     const res = await models.Models.create(modelData);
+
+    if (data.body.url_datasets && Array.isArray(data.body.url_datasets)) {
+        try {
+            await Promise.all(
+                data.body.url_datasets.map(async (datasetUrl) => {
+                    await this.datasetUrlService.addUrl(res.id, datasetUrl);
+                })
+            );
+        } catch (error) {
+            console.error('Error adding dataset URLs:', error);
+            throw new Error('Error adding dataset URLs');
+        }
+    }
+
+    if (data.body.url_papers && Array.isArray(data.body.url_papers)) {
+        try {
+            await Promise.all(
+                data.body.url_papers.map(async (paperUrl) => {
+                    await this.paperUrlService.addUrl(res.id, paperUrl);
+                })
+            );
+        } catch (error) {
+            console.error('Error adding paper URLs:', error);
+            throw new Error('Error adding paper URLs');
+        }
+    }
     return res;
   }
 
@@ -164,62 +191,75 @@ class ModelsService {
   }
 
   async update(id, data) {
-    try {
-      const model = await this.findOne(id);
-      const previousStatus = model.status;
-      const updatedModel = await model.update(data);
-
-      const modelData = {
-        id: id,
-        model_name: updatedModel.model_name,
-        publish_date: updatedModel.publish_date,
-        small_description: updatedModel.small_description,
-        large_description: updatedModel.large_description,
-        score: updatedModel.score,
-        accuracy: updatedModel.accuracy,
-        url_colab: updatedModel.url_colab,
-        url_dataset: updatedModel.url_dataset,
-        url_paper: updatedModel.url_paper,
-        version: updatedModel.version,
-        privated: updatedModel.privated,
-        cont_views: updatedModel.cont_views,
-        status: updatedModel.status
-      };
-
-      if (previousStatus !== 'Accepted' && updatedModel.status === 'Accepted') {
-        const gUser = await this.relationshipUserModelService.findUser(updatedModel.id)
-        const followers = await this.listFollowUsersService.getFollowersOfAuthor(gUser.userFound.id);
-
-
-        for (const follower of followers) {
-          const notification = await this.notificationsService.createNotification({
-            id_user: follower,
-            category: 'MODEL',
-            message: `${gUser.userFound.fullname} a publicado el modelo ${updatedModel.model_name}.`,
-            not_date: new Date(),
-            to_admin: false
-          });
-
-          const io = getIo();
-          io.emit('notification', {
-            userId: notification.id_user,
-            message: notification.message,
-            id: notification.id,
-            date: new Date(notification.not_date).toLocaleDateString(),
-            time: new Date(notification.not_date).toLocaleTimeString(),
-            category: notification.category,
-            to_admin: false
-          });
-        }
-      }
-
-      return modelData;
-
-    } catch (error) {
-      console.error('Error al actualizar el modelo:', error);
-      throw error;
+    const model = await models.Models.findByPk(id);
+    if (!model) {
+        throw new Error('Model not found');
     }
-  }
+
+    const userFields = {
+      model_name: data.model_name,
+      small_description: data.small_description,
+      large_description: data.large_description,
+      accuracy: data.accuracy,
+      url_colab: data.url_colab,
+      version: data.version,
+      privated: data.privated, 
+      // Other fields that should be updated by the user
+    };
+
+    // Additional fields that can be updated by an admin
+    const adminFields = {
+      cont_views: data.cont_views,
+      status: data.status,
+      publish_date: data.publish_date,
+    };
+
+    // Merge the user fields with the admin fields
+    const updatedModelData = {
+      ...userFields,
+      ...adminFields,
+    };
+
+    // Only include fields that are provided in the request
+    Object.keys(updatedModelData).forEach(key => {
+      if (updatedModelData[key] === undefined) {
+        delete updatedModelData[key];
+      }
+    });
+
+    await model.update(updatedModelData);
+
+    if (data.url_datasets && Array.isArray(data.url_datasets)) {
+        await this.datasetUrlService.removeUrlsByModelId(model.id);
+
+        try {
+            await Promise.all(
+                data.url_datasets.map(async (datasetUrl) => {
+                    await this.datasetUrlService.addUrl(model.id, datasetUrl);
+                })
+            );
+        } catch (error) {
+            console.error('Error adding dataset URLs:', error);
+            throw new Error('Error adding dataset URLs');
+        }
+    }
+
+    if (data.url_papers && Array.isArray(data.url_papers)) {
+        await this.paperUrlService.removeUrlsByModelId(model.id);
+
+        try {
+            await Promise.all(
+                data.url_papers.map(async (paperUrl) => {
+                    await this.paperUrlService.addUrl(model.id, paperUrl);
+                })
+            );
+        } catch (error) {
+            console.error('Error adding paper URLs:', error);
+            throw new Error('Error adding paper URLs');
+        }
+    }
+    return model;
+}
 
   async delete(id) {
     const model = await this.findOne(id);

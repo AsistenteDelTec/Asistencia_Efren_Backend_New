@@ -14,6 +14,8 @@ const { StatusNotification, StatusNotificationSchema } = require('./statusNotifi
 const { Categories, CategoriesSchema } = require('./category.model');
 const { RelationshipModelCategory, RelationshipModelCategorySchema} = require('./relationship_model_category.model')
 const { RelationshipDatasetCategory, RelationshipDatasetCategorySchema} = require('./relationship_dataset_category.model')
+const { RelationshipModelUrlDataset, RelationshipModelUrlDatasetSchema } = require('./relationship_model_url_dataset.model');
+const { RelationshipModelUrlPaper, RelationshipModelUrlPaperSchema } = require('./relationship_model_url_paper.model');
 
 function setupModels(sequelize) {
     Users.init(UsersSchema, Users.config(sequelize));
@@ -32,9 +34,9 @@ function setupModels(sequelize) {
     Categories.init(CategoriesSchema, Categories.config(sequelize)); // Inicializar StatusNotification
     RelationshipModelCategory.init(RelationshipModelCategorySchema, RelationshipModelCategory.config(sequelize));
     RelationshipDatasetCategory.init(RelationshipDatasetCategorySchema, RelationshipDatasetCategory.config(sequelize));
-
-
-
+    RelationshipModelUrlDataset.init(RelationshipModelUrlDatasetSchema, RelationshipModelUrlDataset.config(sequelize)); 
+    RelationshipModelUrlPaper.init(RelationshipModelUrlPaperSchema, RelationshipModelUrlPaper.config(sequelize)); 
+    
     // Definir relaciones
     Users.hasMany(ListFollowUsers, { foreignKey: 'id_user' });
     ListFollowUsers.belongsTo(Users, { foreignKey: 'id_user' });
@@ -144,7 +146,6 @@ function setupModels(sequelize) {
         as:'dataset'
     })
 
-
     RelationshipUserModel.belongsTo(Users, { foreignKey: 'id_user' });
     RelationshipUserModel.belongsTo(Models, { foreignKey: 'id_model' });
 
@@ -163,6 +164,8 @@ function setupModels(sequelize) {
     Users.hasMany(Notifications, { foreignKey: 'id_user' });
     Notifications.belongsTo(Users, { foreignKey: 'id_user' });
 
+    RelationshipModelUrlDataset.belongsTo(Models, { foreignKey: 'model_id' });
+    RelationshipModelUrlPaper.belongsTo(Models, { foreignKey: 'model_id' });
 
 }
 

@@ -3,7 +3,7 @@ const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const authConfig = require('../config/auth')
 const { Op, fn, col } = require('sequelize');
-const { sendVerificationEmail, sendNewPasswordEmail } = require('../services/email.services'); // Importar el servicio de email
+const { sendVerificationEmail, sendNewPasswordEmail } = require('../services/email.services');
 
 class UsersService {
     constructor() { }
@@ -222,10 +222,10 @@ class UsersService {
 
             const generateRandomPassword = () => {
                 const length = 8;
-                const lowercase = 'bcdfghjklmnpqrstvwxyz'; // Excluding 'aeiou'
-                const uppercase = 'BCDFGHJKLMNPQRSTVWXYZ'; // Excluding 'AEIOU'
+                const lowercase = 'bcdfghjklmnpqrstvwxyz';
+                const uppercase = 'BCDFGHJKLMNPQRSTVWXYZ';
                 const numbers = '0123456789';
-                const symbols = '!$%&()?+-@#*_:<>.,';
+                const symbols = '!$%&()@#_';
                 
                 let password = '';
             

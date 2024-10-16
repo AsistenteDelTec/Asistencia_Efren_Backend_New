@@ -6,7 +6,6 @@ class RelationshipDatasetCategory {
     constructor() { }
 
     async create(data) {
-        
         const datos = {
             id_dataset: data.body.id_dataset,
             id_category: data.body.id_category,
@@ -40,7 +39,6 @@ class RelationshipDatasetCategory {
             throw error;
         }
     }
-    
 
     async findOne(id, id2) {
         const res = await models.RelationshipDatasetCategory.findOne({
@@ -66,10 +64,6 @@ class RelationshipDatasetCategory {
             throw new Error('Failed to retrieve data');
         }
     }
-
-    
-
-
 }
 
 module.exports = RelationshipDatasetCategory;

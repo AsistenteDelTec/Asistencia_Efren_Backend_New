@@ -1,5 +1,12 @@
 const ModelsService = require('../services/models.services');
+const RelationshipModelUrlDatasetService = require('../services/relationship_model_url_dataset.services'); 
+const RelationshipModelUrlPaperService = require('../services/relationship_model_url_paper.services'); 
+const RelationshipModelCategory = require('../services/relationship_model_category.services');
+
 const service = new ModelsService();
+const relationshipModelUrlDatasetService = new RelationshipModelUrlDatasetService();
+const relationshipModelUrlPaperService = new RelationshipModelUrlPaperService();
+const relationshipModelCategoryService = new RelationshipModelCategory();
 
 const create = async (req, res) => {
     try {
@@ -32,8 +39,26 @@ const get = async (req, res) => {
 const getById = async (req, res) => {
     try {
         const { id } = req.params;
-        const response = await service.findOne(id);
-        res.json(response);
+        const model = await service.findOne(id);
+
+        if(!model)
+            return res.status(404).send({ success: false, message: 'Model not found' });
+
+        const datasets = await relationshipModelUrlDatasetService.getUrls(id);
+        const papers = await relationshipModelUrlPaperService.getUrls(id);
+        const categories = await relationshipModelCategoryService.findMyCategories(id);
+
+        const response = {
+            ...model.toJSON(),
+            datasets: datasets.map(dataset => dataset.url),
+            papers: papers.map(paper => paper.url),
+            categories
+        };
+
+        res.json({
+            success: true,
+            model: response,
+        });
     } catch (error) {
         res.status(500).send({ success: false, message: error.message });
     }
@@ -53,6 +78,9 @@ const update = async (req, res) => {
         const { id } = req.params;
         const body = req.body;
         const response = await service.update(id, body);
+        if (!response) {
+            return res.status(404).send({ success: false, message: 'No se pudo actualizar el modelo' });
+        }
         res.json(response);
     } catch (error) {
         res.status(500).send({ success: false, message: error.message });
@@ -69,11 +97,10 @@ const _delete = async (req, res) => {
     }
 };
 
-// New methods for handling dataset URLs
 const addDatasetUrl = async (req, res) => {
     try {
         const { modelId } = req.params;
-        const { url } = req.body; // Assuming the URL is sent in the body
+        const { url } = req.body; 
         const response = await service.addDatasetUrl(modelId, url);
         res.json({ success: true, data: response });
     } catch (error) {
@@ -101,11 +128,10 @@ const deleteDatasetUrl = async (req, res) => {
     }
 };
 
-// New methods for handling paper URLs
 const addPaperUrl = async (req, res) => {
     try {
         const { modelId } = req.params;
-        const { url } = req.body; // Assuming the URL is sent in the body
+        const { url } = req.body; 
         const response = await service.addPaperUrl(modelId, url);
         res.json({ success: true, data: response });
     } catch (error) {

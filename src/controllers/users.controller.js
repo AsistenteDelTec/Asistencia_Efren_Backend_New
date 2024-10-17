@@ -97,6 +97,23 @@ const _delete = async (req, res) => {
     }
 }
 
+const resetPassword = async (req, res) => { 
+    const { email,currentPassword, newPassword } = req.body;
+
+    try {
+        const result = await service.resetPasswordManually(email,currentPassword, newPassword);
+
+        if (result) {
+          res.status(200).json({ success: true, message: 'Se ha restablecido la contraseña.' });
+      } else {
+          res.status(400).json({ success: false, message: 'Hubo un error al restablecer la contraseña.' });
+      }
+    } catch (error) {
+        console.error('Error during password reset:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+}
+
 module.exports = {
-    create, get, getCommunity, getById,getCount,getFollowers,getUsersByYear, update, _delete
+    create, get, getCommunity, getById,getCount,getFollowers,getUsersByYear, update, _delete, resetPassword
 };

@@ -256,6 +256,30 @@ class UsersService {
             throw error;
         }
     }
+
+    async resetPasswordManually(email, currentPassword, newPassword) {
+        try {
+            const user = await this.findOneByEmail(email);
+            if (!user) {
+                throw new Error('No existe un usuario con este correo electrónico.');
+            }
+
+            const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+            if (!passwordMatch) {
+                console.log("contraseña no coincide")
+                throw new Error('La contraseña actual es incorrecta.');
+            }
+
+            const hashedPassword = bcrypt.hashSync(newPassword, parseInt(authConfig.rounds));
+            console.log("actualizando contraseña")
+            await user.update({ password: hashedPassword });
+
+            return { success: true, message: 'Se ha restablecido la contraseña.' };
+        } catch (error) {
+            console.error('Error resetting password:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = UsersService;

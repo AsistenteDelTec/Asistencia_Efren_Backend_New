@@ -4,7 +4,8 @@ const RelationshipUserModelService = require('./relationship_user_model.services
 const ListFollowUsersService = require('./list_follow_users.services');
 const NotificationsService = require('./notifications.services');
 const RelationshipModelUrlDatasetService = require('./relationship_model_url_dataset.services'); 
-const RelationshipModelUrlPaperService = require('./relationship_model_url_paper.services');   
+const RelationshipModelUrlPaperService = require('./relationship_model_url_paper.services'); 
+const RelationshipModelCategoryService = require('./relationship_model_category.services')  
 
 class ModelsService {
   constructor() {
@@ -13,6 +14,7 @@ class ModelsService {
     this.notificationsService = new NotificationsService();
     this.datasetUrlService = new RelationshipModelUrlDatasetService(); 
     this.paperUrlService = new RelationshipModelUrlPaperService(); 
+    this.relationshipModelCategory = new RelationshipModelCategoryService();
   }
 
   async create(data) {
@@ -115,6 +117,7 @@ class ModelsService {
         throw new Error('Model not found');
     }
 
+    // Additional fields that can be updated by an user
     const userFields = {
       model_name: data.model_name,
       small_description: data.small_description,
@@ -123,12 +126,11 @@ class ModelsService {
       url_colab: data.url_colab,
       version: data.version,
       privated: data.privated, 
-      // Other fields that should be updated by the user
+      cont_views: data.cont_views,
     };
 
     // Additional fields that can be updated by an admin
     const adminFields = {
-      cont_views: data.cont_views,
       status: data.status,
       publish_date: data.publish_date,
     };
@@ -148,37 +150,59 @@ class ModelsService {
 
     await model.update(updatedModelData);
 
-    if (data.url_datasets && Array.isArray(data.url_datasets)) {
-        await this.datasetUrlService.removeUrlsByModelId(model.id);
-
+    // Check and update url_datasets
+    if (data.url_datasets && data.url_datasets.length > 0) {
+      await this.datasetUrlService.deleteUrlsByModelId(model.id);
         try {
             await Promise.all(
                 data.url_datasets.map(async (datasetUrl) => {
                     await this.datasetUrlService.addUrl(model.id, datasetUrl);
                 })
             );
-        } catch (error) {
-            console.error('Error adding dataset URLs:', error);
-            throw new Error('Error adding dataset URLs');
-        }
+
+      } catch (error) {
+          console.error('Error adding dataset URLs:', error);
+          throw new Error('Error adding dataset URLs');
+      }
     }
 
-    if (data.url_papers && Array.isArray(data.url_papers)) {
-        await this.paperUrlService.removeUrlsByModelId(model.id);
-
+    // Check and update url_papers
+    if (data.url_papers && data.url_papers.length > 0) {
+        await this.paperUrlService.deleteUrlsByModelId(model.id);
         try {
             await Promise.all(
                 data.url_papers.map(async (paperUrl) => {
                     await this.paperUrlService.addUrl(model.id, paperUrl);
                 })
             );
+
         } catch (error) {
             console.error('Error adding paper URLs:', error);
             throw new Error('Error adding paper URLs');
         }
     }
+
+    // Check and update categories
+    if (data.categories && data.categories.length > 0) {
+        await this.relationshipModelCategory.deleteByModelID(model.id);
+        try {
+            await Promise.all(
+                data.categories.map(async (categoryId) => {
+                  await this.relationshipModelCategory.create({
+                    body: {
+                        id_model: model.id,
+                        id_category: categoryId,
+                    }
+                });
+                })
+            );
+        } catch (error) {
+            console.error('Error adding categories:', error);
+            throw new Error('Error adding categories');
+        }
+    }
     return model;
-}
+  }
 
   async delete(id) {
     const model = await this.findOne(id);

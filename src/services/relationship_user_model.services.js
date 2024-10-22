@@ -124,10 +124,6 @@ class RelationshipUserModel {
             throw new Error('Failed to retrieve data');
         }
     }
-
-    
-
-
 }
 
 module.exports = RelationshipUserModel;

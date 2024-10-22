@@ -261,20 +261,20 @@ class UsersService {
         try {
             const user = await this.findOneByEmail(email);
             if (!user) {
-                throw new Error('No existe un usuario con este correo electrónico.');
+                throw { status: 404, succes: false, message: 'No existe un usuario con este correo electrónico.' };
             }
 
             const passwordMatch = await bcrypt.compare(currentPassword, user.password);
+            console.log(passwordMatch)
             if (!passwordMatch) {
-                console.log("contraseña no coincide")
-                throw new Error('La contraseña actual es incorrecta.');
+                console.log("contraseña no coincide");
+                throw { status: 400, succes: false, message: 'La contraseña actual es incorrecta.' };
             }
 
             const hashedPassword = bcrypt.hashSync(newPassword, parseInt(authConfig.rounds));
-            console.log("actualizando contraseña")
             await user.update({ password: hashedPassword });
 
-            return { success: true, message: 'Se ha restablecido la contraseña.' };
+            return { status: 200, success: true, message: 'Se ha restablecido la contraseña.' };
         } catch (error) {
             console.error('Error resetting password:', error);
             throw error;

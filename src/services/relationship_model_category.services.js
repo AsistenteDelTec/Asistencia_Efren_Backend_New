@@ -1,6 +1,5 @@
 const { models } = require('../libs/sequelize');
 const { Op } = require('sequelize');
-const { getIo } = require('../config/socket');
 
 class RelationshipModelCategory {
     constructor() { }
@@ -62,9 +61,20 @@ class RelationshipModelCategory {
         }
     }
 
-    
-
-
+    async deleteByModelID(modelId){
+        try{
+            if (relationships.length === 0) {
+                return { deleted: false, message: 'No se encontraron relaciones con categorías para este modelo' };
+            }
+            await models.RelationshipModelCategory.destroy({
+                where: { id_model: modelId }
+            });
+            return { deleted: true };
+        }catch(errror){
+            console.error('Error fetching all relationships:', error);
+            throw new Error('No se pudo eliminar las relaciones modelo categoría');
+        }
+    }
 }
 
 module.exports = RelationshipModelCategory;

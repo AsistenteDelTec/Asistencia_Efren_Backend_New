@@ -5,6 +5,8 @@ const modelsController = require('../controllers/models.controller');
 //Router de modelos
 router
     .get('/topModels/', modelsController.getTopModels)
+    .get('/topModelsByViews/', modelsController.getTopModelsByViews)
+    .get('/topModelsByCategory/', modelsController.getTopModelsByCategory)
     .get('/', modelsController.get)
     .get('/:id', modelsController.getById)
     .get('/modelsByYear/:year', modelsController.getPostsByYear)

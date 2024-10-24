@@ -82,6 +82,24 @@ const getTopModels = async (req, res) => {
     }
 };
 
+const getTopModelsByViews = async (req, res) => {
+    try {
+        const response = await service.getTopViewedModels();
+        res.json(response);
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
+
+const getTopModelsByCategory = async (req, res) => {
+    try {
+        const response = await service.getTopModelsByCategory();
+        res.json(response);
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
+
 const update = async (req, res) => {
     try {
         const { id } = req.params;
@@ -174,6 +192,8 @@ module.exports = {
     getById,
     update,
     getTopModels,
+    getTopModelsByViews,
+    getTopModelsByCategory,
     _delete,
     getPostsByYear,
     addDatasetUrl,

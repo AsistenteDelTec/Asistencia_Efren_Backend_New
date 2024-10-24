@@ -60,32 +60,6 @@ class ModelsService {
     return res;
   }
 
-  // async find() {
-  //   try{
-  //     const res = await models.Models.findAll({
-  //       order: [['id', 'ASC']],
-  //       include: [
-  //         {
-  //             model: models.Categories,
-  //             as: 'category',
-  //             where: { visible: true }, // Filtra por categorías visibles
-  //             required: false // This makes the join a LEFT JOIN, including datasets without a category
-  //         },
-  //         {
-  //             model: models.Users,
-  //             as: 'user',
-  //             attributes: ['fullname']
-  //         }
-  //       ],
-        
-  //     });
-  //     return res;
-  //   } catch (error) {
-  //     console.error('Error fetching data:', error);
-  //     throw error; // Propagate the error if needed
-  //   }
-  // }
-
   async find({ page = 1, limit = 10000, search = '', category, status='Accepted', privated=false }) {
     try {
       console.log("Categoria recibida: ", category)
@@ -189,6 +163,79 @@ class ModelsService {
     });
     return topModels;
   }
+
+  async getTopViewedModels() {
+    const topModels = await models.Models.findAll({
+      attributes: ['id', 'model_name', 'accuracy', 'cont_views', 'publish_date'],
+      order: [['cont_views', 'DESC']],
+      limit: 3,
+      where: {
+        status: 'Accepted',
+        privated: 'false'
+      },
+      include: [
+        {
+          model: models.Users,
+          as: 'user',
+          attributes: ['fullname'],
+          through: { attributes: [] },
+        },
+      ],
+    });
+    return topModels;
+  }
+
+  async getTopModelsByCategory() {
+    try {
+      // First, find all categories
+      const categories = await models.Categories.findAll({
+        where: {
+            visible: true,
+        }
+    });
+  
+      // For each category, fetch the top 3 models based on cont_views
+      const topModelsByCategory = await Promise.all(categories.map(async (category) => {
+        const topModels = await models.Models.findAll({
+          attributes: ['id', 'model_name', 'accuracy', 'cont_views'],
+          include: [
+            {
+              model: models.Categories, // Junction table to link categories with models
+              as: 'category', // Alias for the association
+              where: { id: category.id }, // Filter by the current category ID
+              attributes: [], // No need to retrieve attributes from the junction table
+              required:true
+            },
+            {
+              model: models.Users,
+              as: 'user',
+              attributes: ['fullname'],
+              through: { attributes: [] },
+            }
+          ],
+          where: {
+            status: 'Accepted',
+            privated: false
+          },
+          order: [['cont_views', 'DESC']],
+          limit: 3, // Limit to top 3 models per category
+        });
+  
+        return {
+          category:category.categories_name,
+          category_id:category.id,
+          models:topModels,
+        };
+      }));
+  
+      return topModelsByCategory;
+    } catch (error) {
+      console.error('Error fetching top models:', error);
+      throw error;
+    }
+  }
+  
+  
 
   async update(id, data) {
     const model = await models.Models.findByPk(id);

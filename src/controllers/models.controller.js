@@ -2,11 +2,13 @@ const ModelsService = require('../services/models.services');
 const RelationshipModelUrlDatasetService = require('../services/relationship_model_url_dataset.services'); 
 const RelationshipModelUrlPaperService = require('../services/relationship_model_url_paper.services'); 
 const RelationshipModelCategory = require('../services/relationship_model_category.services');
+const RelationshipUserModel = require('../services/relationship_user_model.services');
 
 const service = new ModelsService();
 const relationshipModelUrlDatasetService = new RelationshipModelUrlDatasetService();
 const relationshipModelUrlPaperService = new RelationshipModelUrlPaperService();
 const relationshipModelCategoryService = new RelationshipModelCategory();
+const relationshipUserModel = new RelationshipUserModel();
 
 const create = async (req, res) => {
     try {
@@ -50,7 +52,7 @@ const getById = async (req, res) => {
         const { id } = req.params;
         const model = await service.findOne(id);
 
-        if(!model)
+        if (!model)
             return res.status(404).send({ success: false, message: 'Model not found' });
 
         const datasets = await relationshipModelUrlDatasetService.getUrls(id);
@@ -61,7 +63,37 @@ const getById = async (req, res) => {
             ...model.toJSON(),
             datasets: datasets.map(dataset => dataset.url),
             papers: papers.map(paper => paper.url),
-            categories
+            categories,
+        };
+
+        res.json({
+            success: true,
+            model: response,
+        });
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
+
+const getByIdWithUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const model = await service.findOne(id);
+
+        if (!model)
+            return res.status(404).send({ success: false, message: 'Model not found' });
+
+        const datasets = await relationshipModelUrlDatasetService.getUrls(id);
+        const papers = await relationshipModelUrlPaperService.getUrls(id);
+        const categories = await relationshipModelCategoryService.findMyCategories(id);
+        const user = await relationshipUserModel.findUser(id);
+
+        const response = {
+            ...model.toJSON(),
+            datasets: datasets.map(dataset => dataset.url),
+            papers: papers.map(paper => paper.url),
+            categories,
+            user: user ? user.userFound : null
         };
 
         res.json({
@@ -190,6 +222,7 @@ module.exports = {
     create,
     get,
     getById,
+    getByIdWithUser,
     update,
     getTopModels,
     getTopModelsByViews,
@@ -201,5 +234,5 @@ module.exports = {
     deleteDatasetUrl,
     addPaperUrl,
     getPaperUrls,
-    deletePaperUrl
+    deletePaperUrl,
 };

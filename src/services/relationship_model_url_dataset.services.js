@@ -20,6 +20,11 @@ class RelationshipModelUrlDatasetService {
     async getUrls(model_id) {
         return await models.RelationshipModelUrlDataset.findAll({ where: { model_id } });
     }
+
+    async deleteUrlsByModelId(model_id) {
+        await models.RelationshipModelUrlDataset.destroy({ where: { model_id } });
+    }
+
 }
 
 module.exports = RelationshipModelUrlDatasetService;

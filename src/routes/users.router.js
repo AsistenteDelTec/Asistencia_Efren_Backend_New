@@ -11,7 +11,8 @@ router
     .get('/usersByYear/:year', usersController.getUsersByYear)
     .post('/', usersController.create)
     .put('/:id', usersController.update)
-    .delete('/:id', usersController._delete);
+    .delete('/:id', usersController._delete)
+    .post('/reset-password', usersController.resetPassword);
 
 module.exports = router;
 

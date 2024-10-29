@@ -97,6 +97,18 @@ const _delete = async (req, res) => {
     }
 }
 
+const resetPassword = async (req, res) => { 
+    const { email, currentPassword, newPassword } = req.body;
+
+    try {
+        const result = await service.resetPasswordManually(email,currentPassword, newPassword);
+        console.log('Password manually reseted.')
+    } catch (error) {
+        console.error('Error during password reset:', error.message);
+        res.status(error.status).send({ success: false, message: error.msg });
+    }
+}
+
 module.exports = {
-    create, get, getCommunity, getById,getCount,getFollowers,getUsersByYear, update, _delete
+    create, get, getCommunity, getById,getCount,getFollowers,getUsersByYear, update, _delete, resetPassword
 };

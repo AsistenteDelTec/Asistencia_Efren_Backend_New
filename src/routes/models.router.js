@@ -9,6 +9,7 @@ router
     .get('/topModelsByCategory/', modelsController.getTopModelsByCategory)
     .get('/', modelsController.get)
     .get('/:id', modelsController.getById)
+    .get('/withUser/:id', modelsController.getByIdWithUser)
     .get('/modelsByYear/:year', modelsController.getPostsByYear)
     .post('/', modelsController.create)
     .put('/:id', modelsController.update)

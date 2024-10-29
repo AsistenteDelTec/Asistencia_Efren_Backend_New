@@ -20,6 +20,11 @@ class RelationshipModelUrlPaperService {
     async getUrls(model_id) {
         return await models.RelationshipModelUrlPaper.findAll({ where: { model_id } });
     }
+
+    async deleteUrlsByModelId(model_id) {
+        await models.RelationshipModelUrlPaper.destroy({ where: { model_id } });
+    }
+
 }
 
 module.exports = RelationshipModelUrlPaperService;

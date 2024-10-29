@@ -45,10 +45,6 @@ const DatasetsSchema = {
         type: DataTypes.STRING(200),
         allowNull: false
     },
-    url_paper: {
-        type: DataTypes.STRING(200),
-        allowNull: true
-    },
     version: {
         type: DataTypes.STRING(10),
         allowNull: true

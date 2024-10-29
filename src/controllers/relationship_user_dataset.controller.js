@@ -1,4 +1,4 @@
-const RelationshipUserDataset = require('../services/relationship_user_datset.service');
+const RelationshipUserDataset = require('../services/relationship_user_dataset.services');
 
 const service = new RelationshipUserDataset();
 

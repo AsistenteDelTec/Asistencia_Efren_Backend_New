@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router();
-const favDataset = require('../controllers/list_fav_datsets.controller');
+const favDataset = require('../controllers/list_fav_datasets.controller');
 
 router
     .post('/', favDataset.create)

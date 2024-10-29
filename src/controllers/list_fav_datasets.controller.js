@@ -1,4 +1,4 @@
-const ListFavDatasetsService = require('../services/list_fav_datset.services');
+const ListFavDatasetsService = require('../services/list_fav_dataset.services');
 const {models} = require('../libs/sequelize');
 const service = new ListFavDatasetsService();
 

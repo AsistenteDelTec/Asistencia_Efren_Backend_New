@@ -108,6 +108,33 @@ const getPostsByYear = async (req, res) => {
     }
 }
 
+const getTopDatasets = async (req, res) => {
+    try {
+        const response = await service.getTopRatedDatasets();
+        res.json(response);
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
+
+const getTopDatasetsByViews = async (req, res) => {
+    try {
+        const response = await service.getTopViewedDatasets();
+        res.json(response);
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
+
+const getTopDatasetsByCategory = async (req, res) => {
+    try {
+        const response = await service.getTopDatasetsByCategory();
+        res.json(response);
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
+
 const update = async (req, res) => {
     try {
         const { id } = req.params;
@@ -174,4 +201,7 @@ module.exports = {
     addPaperUrl, 
     getPaperUrls, 
     deletePaperUrl,
+    getTopDatasetsByCategory,
+    getTopDatasetsByViews,
+    getTopDatasets,
 };

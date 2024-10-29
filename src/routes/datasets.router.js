@@ -3,6 +3,9 @@ const router = express.Router();
 const datasetsController = require('../controllers/datasets.controller');
 
 router
+    .get('/topDatasets/', datasetsController.getTopDatasets)
+    .get('/topDatasetsByViews/', datasetsController.getTopDatasetsByViews)
+    .get('/topDatasetsByCategory/', datasetsController.getTopDatasetsByCategory)
     .get('/', datasetsController.get)
     .get('/:id', datasetsController.getById)
     .get('/withUser/:id', datasetsController.getByIdWithUser)

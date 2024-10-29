@@ -245,6 +245,89 @@ class DatasetsService {
         await dataset.destroy();
         return { deleted: true };
     }
+
+    async getTopRatedDatasets() {
+        const topDatasets = await models.Datasets.findAll({
+            order: [['score', 'DESC']],
+            limit: 10,
+            where: {
+            status: 'Accepted',
+            privated: 'false'
+            },
+        });
+        return topDatasets;
+    }
+
+    async getTopViewedDatasets() {
+        const topDatasets = await models.Datasets.findAll({
+            attributes: ['id', 'dataset_name', 'cont_views', 'publish_date'],
+            order: [['cont_views', 'DESC']],
+            limit: 3,
+            where: {
+                status: 'Accepted',
+                privated: 'false'
+            },
+            include: [
+            {
+                model: models.Users,
+                as: 'user',
+                attributes: ['fullname'],
+                through: { attributes: [] },
+            },
+            ],
+        });
+        return topDatasets;
+    }
+
+    async getTopDatasetsByCategory() {
+    try {
+        // First, find all categories
+        const categories = await models.Categories.findAll({
+        where: {
+            visible: true,
+        }
+    });
+    
+        // For each category, fetch the top 3 datasets based on cont_views
+        const topDatasetsByCategory = await Promise.all(categories.map(async (category) => {
+        const topDatasets = await models.Datasets.findAll({
+            attributes: ['id', 'dataset_name', 'cont_views'],
+            include: [
+            {
+                model: models.Categories, // Junction table to link categories with models
+                as: 'category', // Alias for the association
+                where: { id: category.id }, // Filter by the current category ID
+                attributes: [], // No need to retrieve attributes from the junction table
+                required:true
+            },
+            {
+                model: models.Users,
+                as: 'user',
+                attributes: ['fullname'],
+                through: { attributes: [] },
+            }
+            ],
+            where: {
+                status: 'Accepted',
+                privated: false
+            },
+            order: [['cont_views', 'DESC']],
+            limit: 3, // Limit to top 3 datasets per category
+        });
+    
+        return {
+            category:category.categories_name,
+            category_id:category.id,
+            datasets:topDatasets,
+        };
+        }));
+    
+        return topDatasetsByCategory;
+    } catch (error) {
+        console.error('Error fetching top datasets:', error);
+        throw error;
+    }
+    }
 }
 
 module.exports = DatasetsService;

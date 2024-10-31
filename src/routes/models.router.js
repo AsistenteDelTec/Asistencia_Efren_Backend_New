@@ -7,6 +7,7 @@ router
     .get('/topModels/', modelsController.getTopModels)
     .get('/topModelsByViews/', modelsController.getTopModelsByViews)
     .get('/topModelsByCategory/', modelsController.getTopModelsByCategory)
+    .get('/GetWithPagination', modelsController.getWithPagination)
     .get('/', modelsController.get)
     .get('/:id', modelsController.getById)
     .get('/modelsByYear/:year', modelsController.getPostsByYear)

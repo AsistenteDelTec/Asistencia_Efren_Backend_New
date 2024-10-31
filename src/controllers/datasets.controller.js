@@ -10,14 +10,45 @@ const create = async (req, res) => {
     }
 }
 
+async function getWithPagination(req, res, next) {
+    try {
+      const { page, limit, search, category, status, privated } = req.query;
+      const result = await service.findWithPagination({ page, limit, search, category, status, privated });
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+};
+
+
 const get = async (req, res) => {
     try {
-        const response = await service.find();
+        const response = await service.findAll();
         res.json(response);
     } catch (error) {
         res.status(500).send({ success: false, message: error.message });
     }
 }
+
+
+const getTopDatasetsByViews = async (req, res) => {
+    try {
+        const response = await service.getTopViewedDatasets();
+        res.json(response);
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
+
+const getTopDatasetsByCategory = async (req, res) => {
+    try {
+        const response = await service.getTopDatasetsByCategory();
+        res.json(response);
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
+
 
 const getById = async (req, res) => {
     try {
@@ -62,5 +93,5 @@ const _delete = async (req, res) => {
 }
 
 module.exports = {
-    create, get, getById,getPostsByYear, update, _delete
+    create, getWithPagination, get,  getById,getPostsByYear, getTopDatasetsByViews, getTopDatasetsByCategory, update, _delete
 };

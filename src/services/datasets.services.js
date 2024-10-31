@@ -1,9 +1,10 @@
 const { models } = require('../libs/sequelize');
-const { Op, fn, col } = require('sequelize');
+const { Op, fn, col,  Sequelize} = require('sequelize');
 const RelationshipUserDataset = require('./relationship_user_datset.service');
 const ListFollowUsersService = require('./list_follow_users.services');
 const NotificationsService = require('./notifications.services');
 const { getIo } = require('../config/socket');
+const { nextTick } = require('process');
 
 class DatasetsService {
     constructor() {
@@ -30,31 +31,120 @@ class DatasetsService {
         return res;
     }
 
-    async find() {
-        try{
-            const res = await models.Datasets.findAll({
-              order: [['id', 'ASC']],
-              include: [
-                {
-                    model: models.Categories,
-                    as: 'category',
-                    where: { visible: true }, // Filtra por categorías visibles
-                    required: false // This makes the join a LEFT JOIN, including datasets without a category
-                },
-                {
-                    model: models.Users,
-                    as: 'user',
-                    attributes: ['fullname']
-                }
-              ],
-              
-            });
-            return res;
-          } catch (error) {
-          console.error('Error fetching data:', error);
-          throw error; // Propagate the error if needed
+  async findWithPagination({ page = 1, limit = 12, search = '', category, status='Accepted', privated=false }) {
+        try {
+          console.log("Categoria recibida: ", category)
+          const offset = (page - 1) * limit;
+    
+          // Condiciones del where principal
+          const whereConditions = {
+            [Op.and]: [
+              { dataset_name: { [Op.iLike]: `%${search}%`} }, // Filtrar por nombre del modelo
+              { status },                      // Solo modelos con status 'Accepted'
+              { privated }                          // Solo modelos que no sean privados
+            ]
+          };
+    
+          // Si hay un category, agregarlo a las condiciones del where
+          if (category) {
+            whereConditions[Op.and].push(
+              Sequelize.literal(`EXISTS (SELECT 1 FROM "relationship_dataset_category" AS "RelationshipDatasetCategory" WHERE "RelationshipDatasetCategory"."id_dataset" = "Datasets"."id" AND "RelationshipDatasetCategory"."id_category" = ${category})`)
+            );
+          }
+      
+          const res = await models.Datasets.findAndCountAll({
+            include: [
+              {
+                model: models.Categories,
+                as: 'category',
+                where: { visible: true},   // Filtra por categorías visibles
+                required:false
+              },
+              {
+                model: models.Users,
+                as: 'user',
+                attributes: ['fullname'],
+              },
+            ],
+            
+            where:whereConditions,
+            limit, // Limita los resultados devueltos
+            offset, // Define desde qué registro iniciar
+            order: [['id', 'ASC']],
+            distinct: true  // Asegura que el conteo sea de modelos únicos, no duplicados por las categorías
+          });
+          
+          return {
+            totalItems: res.count,
+            totalPages: Math.ceil(res.count / limit),
+            currentPage: page,
+            datasets: res.rows,  // Modelos devueltos
+          };
+        } catch (error) {
+          console.error('Error fetching data with pagination:', error);
+          throw error;
         }
+  }
+      
+  async findAll() {
+    try {
+        const result = await models.Datasets.findAll();
+        return result;
+    } catch (error) {
+        console.error('Error fetching all relationships:', error);
+        throw new Error('Failed to retrieve data');
     }
+  }
+   
+  async getTopDatasetsByCategory() {
+    try {
+      // First, find all categories
+      const categories = await models.Categories.findAll({
+        where: {
+            visible: true,
+        }
+    });
+  
+      // For each category, fetch the top 3 models based on cont_views
+      const topDatasetsByCategory = await Promise.all(categories.map(async (category) => {
+        const topDatasets = await models.Datasets.findAll({
+          attributes: ['id', 'dataset_name', 'cont_views'],
+          include: [
+            {
+              model: models.Categories, // Junction table to link categories with models
+              as: 'category', // Alias for the association
+              where: { id: category.id }, // Filter by the current category ID
+              attributes: [], // No need to retrieve attributes from the junction table
+              required:true
+            },
+            {
+              model: models.Users,
+              as: 'user',
+              attributes: ['fullname'],
+              through: { attributes: [] },
+            }
+          ],
+          where: {
+            status: 'Accepted',
+            privated: false
+          },
+          order: [['cont_views', 'DESC']],
+          limit: 3, // Limit to top 3 models per category
+        });
+        return {
+          category:category.categories_name,
+          category_id:category.id,
+          datasets:topDatasets,
+        };
+
+      }));
+      const justCategoriesWithInfo = topDatasetsByCategory.filter((e)=> e.datasets.length > 0);
+      return justCategoriesWithInfo
+    } catch (error) {
+      console.error('Error fetching top models:', error);
+      throw error;
+    }
+  }
 
     async findOne(id) {
         const res = await models.Datasets.findByPk(id);
@@ -85,6 +175,28 @@ class DatasetsService {
 
         return (data)
     }
+
+    
+  async getTopViewedDatasets() {
+    const topDatasets = await models.Datasets.findAll({
+      attributes: ['id', 'dataset_name', 'cont_views', 'publish_date'],
+      order: [['cont_views', 'DESC']],
+      limit: 3,
+      where: {
+        status: 'Accepted',
+        privated: 'false'
+      },
+      include: [
+        {
+          model: models.Users,
+          as: 'user',
+          attributes: ['fullname'],
+          through: { attributes: [] },
+        },
+      ],
+    });
+    return topDatasets;
+  }
 
     async update(id, data) {
         try {

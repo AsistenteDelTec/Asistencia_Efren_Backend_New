@@ -60,7 +60,18 @@ class ModelsService {
     return res;
   }
 
-  async find({ page = 1, limit = 10000, search = '', category, status='Accepted', privated=false }) {
+      
+  async findAll() {
+    try {
+        const result = await models.Models.findAll();
+        return result;
+    } catch (error) {
+        console.error('Error fetching all relationships:', error);
+        throw new Error('Failed to retrieve data');
+    }
+  }
+
+  async findWithPagination({ page = 1, limit = 12, search = '', category, status='Accepted', privated=false }) {
     try {
       console.log("Categoria recibida: ", category)
       const offset = (page - 1) * limit;
@@ -103,12 +114,6 @@ class ModelsService {
         distinct: true  // Asegura que el conteo sea de modelos únicos, no duplicados por las categorías
       });
       
-      console.log({
-        totalItems: res.count,
-        totalPages: Math.ceil(res.count / limit),
-        currentPage: page,
-        models: res.rows,  // Modelos devueltos
-      })
       return {
         totalItems: res.count,
         totalPages: Math.ceil(res.count / limit),
@@ -227,8 +232,8 @@ class ModelsService {
           models:topModels,
         };
       }));
-  
-      return topModelsByCategory;
+      const justCategoriesWithInfo = topModelsByCategory.filter((e)=> e.models.length > 0);
+      return justCategoriesWithInfo
     } catch (error) {
       console.error('Error fetching top models:', error);
       throw error;

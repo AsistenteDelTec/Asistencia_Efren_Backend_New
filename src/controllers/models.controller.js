@@ -47,6 +47,16 @@ async function getGroupedCategory(req, res, next) {
     }
 };
 
+async function getWithPagination(req, res, next) {
+    try {
+      const { page, limit, search, category, status, privated } = req.query;
+      const result = await service.findWithPagination({ page, limit, search, category, status, privated });
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+};
+
 const getById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -228,6 +238,7 @@ module.exports = {
     getTopModels,
     getTopModelsByViews,
     getTopModelsByCategory,
+    getWithPagination,
     _delete,
     getPostsByYear,
     addDatasetUrl,

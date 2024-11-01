@@ -29,18 +29,18 @@ const getPostsByYear = async (req, res) => {
     }
 };
 
-// const get = async (req, res) => {
-//     try {
-//         const response = await service.find();
-//         res.json(response);
-//     } catch (error) {
-//         res.status(500).send({ success: false, message: error.message });
-//     }
-// }
-async function get(req, res, next) {
+const get = async (req, res) => {
+    try {
+        const response = await service.find();
+        res.json(response);
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+async function getGroupedCategory(req, res, next) {
     try {
       const { page, limit, search, category, status, privated } = req.query;
-      const result = await service.find({ page, limit, search, category, status, privated });
+      const result = await service.findPages({ page, limit, search, category, status, privated });
       res.json(result);
     } catch (error) {
       next(error);
@@ -221,6 +221,7 @@ const deletePaperUrl = async (req, res) => {
 module.exports = {
     create,
     get,
+    getGroupedCategory,
     getById,
     getByIdWithUser,
     update,

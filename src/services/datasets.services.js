@@ -1,5 +1,5 @@
 const { models } = require('../libs/sequelize');
-const { Op, fn, col } = require('sequelize');
+const { Op, fn, col, Sequelize } = require('sequelize');
 const RelationshipUserDataset = require('./relationship_user_dataset.services');
 const ListFollowUsersService = require('./list_follow_users.services');
 const NotificationsService = require('./notifications.services');
@@ -30,62 +30,8 @@ class DatasetsService {
         };
         try{
             // Crea el dataset y obtiene su ID
-            const res = await models.Datasets.create(datasetData);
-            const id_dataset = res.id;
-
-            // Obtiene información extra del dataset
-            const datasetExtraInfo = {
-                id_user: data.body.id_user,
-                papers: data.body.url_papers,
-                categories: data.body.categories,
-            };
-
-            // Crea relación dataset - usuario
-            try {
-                await this.relationshipUserDataset.create({
-                body:{
-                    id_user: datasetExtraInfo.id_user,
-                    id_dataset: id_dataset,
-                }
-                });
-            } catch (error) {
-                console.error('Error creating user-dataset relationship:', error);
-                throw new Error('Error creating user-dataset relationship');
-            }
-
-            // Crea relación dataset - categorias
-            if (datasetExtraInfo.categories && Array.isArray(datasetExtraInfo.categories)) {
-                try {
-                await Promise.all(
-                    datasetExtraInfo.categories.map(async (category) => {
-                    await this.relationshipDatasetCategory.create({
-                        body:{
-                        id_dataset: id_dataset,
-                        id_category: category.id,
-                        }
-                    });
-                    })
-                );
-                } catch (error) {
-                console.error('Error creating dataset-category relationships:', error);
-                throw new Error('Error creating dataset-category relationships');
-                }
-            }
-
-            // Crea relación dataset - papers
-            if (datasetExtraInfo.papers && Array.isArray(datasetExtraInfo.papers)) {
-                try {
-                await Promise.all(
-                    datasetExtraInfo.papers.map(async (paperUrl) => {
-                    await this.paperUrlService.addUrl(id_dataset, paperUrl);
-                    })
-                );
-                } catch (error) {
-                console.error('Error adding paper URLs:', error);
-                throw new Error('Error adding paper URLs');
-                }
-            }
-            return { success: true, data: res };
+            const dataset = await models.Datasets.create(datasetData);
+            return dataset;
         }catch(error){
             console.error("Error creating dataset", error.message);
             throw new Error(error.message || "Error creando el dataset");
@@ -109,12 +55,72 @@ class DatasetsService {
                     attributes: ['fullname']
                 }
               ],
-              
             });
             return res;
           } catch (error) {
           console.error('Error fetching data:', error);
           throw error; // Propagate the error if needed
+        }
+    }
+
+    async findPages({ page = 1, limit = 10000, search = '', category, status='Accepted', privated=false }) {
+        try {
+            console.log("Categoria recibida: ", category)
+            const offset = (page - 1) * limit;
+
+            // Condiciones del where principal
+            const whereConditions = {
+            [Op.and]: [
+                { dataset_name: { [Op.iLike]: `%${search}%`} }, // Filtrar por nombre del dataset
+                { status },                      // Solo dataset con status 'Accepted'
+                { privated }                          // Solo dataset que no sean privados
+            ]
+            };
+
+            // Si hay un category, agregarlo a las condiciones del where
+            if (category) {
+            whereConditions[Op.and].push(
+                Sequelize.literal(`EXISTS (SELECT 1 FROM "relationship_dataset_category" AS "RelationshipDatasetCategory" WHERE "RelationshipDatasetCategory"."id_dataset" = "Datasets"."id" AND "RelationshipDatasetCategory"."id_category" = ${category})`)
+            );
+            }
+        
+            const res = await models.Datasets.findAndCountAll({
+            include: [
+                {
+                model: models.Categories,
+                as: 'category',
+                where: { visible: true},   // Filtra por categorías visibles
+                required:false
+                },
+                {
+                model: models.Users,
+                as: 'user',
+                attributes: ['fullname'],
+                },
+            ],
+            
+            where:whereConditions,
+            limit, // Limita los resultados devueltos
+            offset, // Define desde qué registro iniciar
+            order: [['id', 'ASC']],
+            distinct: true  // Asegura que el conteo sea de datasets únicos, no duplicados por las categorías
+            });
+            
+            console.log({
+            totalItems: res.count,
+            totalPages: Math.ceil(res.count / limit),
+            currentPage: page,
+            datasets: res.rows,  // Datasets devueltos
+            })
+            return {
+            totalItems: res.count,
+            totalPages: Math.ceil(res.count / limit),
+            currentPage: page,
+            datasets: res.rows,  // Datasets devueltos
+            };
+        } catch (error) {
+            console.error('Error fetching data with pagination:', error);
+            throw error;
         }
     }
 

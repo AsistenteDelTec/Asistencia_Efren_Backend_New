@@ -11,6 +11,57 @@ const relationshipUserDataset = new RelationshipUserDataset();
 const create = async (req, res) => {
     try {
         const response = await service.create(req);
+        const id_dataset = response.dataValues.id;
+
+        // Información extra del dataset
+        const { id_user, url_papers, categories } = req.body;
+
+        // Crea relación Dataset-Usuario
+        try {
+            await service.relationshipUserDataset.create({
+                body:{
+                    id_user: id_user,
+                    id_dataset: id_dataset,
+                }
+            });
+        } catch (error) {
+            console.error('Error creating user-dataset relationship:', error);
+            return res.status(500).json({ success: false, message: 'Error creating user-dataset relationship' });
+        }
+
+        // Crea relación Dataset-Categorías
+        if (categories && Array.isArray(categories)) {
+            try {
+                await Promise.all(
+                    categories.map(async (category) => {
+                        await service.relationshipDatasetCategory.create({
+                            body:{
+                                id_dataset: id_dataset,
+                                id_category: category.id,
+                            }
+                        });
+                    })
+                );
+            } catch (error) {
+                console.error('Error creating dataset-category relationships:', error);
+                return res.status(500).json({ success: false, message: 'Error creating dataset-category relationships' });
+            }
+        }
+
+        // Crea relación Dataset-Papers
+        if (url_papers && Array.isArray(url_papers)) {
+            try {
+                await Promise.all(
+                    url_papers.map(async (paperUrl) => {
+                        await service.paperUrlService.addUrl(id_dataset, paperUrl);
+                    })
+                );
+            } catch (error) {
+                console.error('Error adding paper URLs:', error);
+                return res.status(500).json({ success: false, message: 'Error adding paper URLs' });
+            }
+        }
+
         res.json({ success: true, data: response });
     } catch (error) {
         res.status(500).send({ success: false, message: error.message });
@@ -19,29 +70,22 @@ const create = async (req, res) => {
 
 const get = async (req, res) => {
     try {
-        const { id } = req.params;
-        const dataset = await service.findOne(id);
-
-        if (!dataset)
-            return res.status(404).send({ success: false, message: 'Dataset not found' });
-
-        const papers = await relationshipDatasetUrlPaperService.getUrls(id);
-        const categories = await relationshipDatasetCategoryService.findMyCategories(id);
-
-        const response = {
-            ...dataset.toJSON(),
-            papers: papers.map(paper => paper.url),
-            categories,
-        };
-
-        res.json({
-            success: true,
-            model: response,
-        });
+        const response = await service.find();
+        res.json(response);
     } catch (error) {
         res.status(500).send({ success: false, message: error.message });
     }
 }
+
+async function getGroupedCategory(req, res, next) {
+    try {
+      const { page, limit, search, category, status, privated } = req.query;
+      const result = await service.findPages({ page, limit, search, category, status, privated });
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+};
 
 const getById = async (req, res) => {
     try {
@@ -193,6 +237,7 @@ const deletePaperUrl = async (req, res) => {
 module.exports = {
     create, 
     get, 
+    getGroupedCategory,
     getById, 
     getByIdWithUser, 
     getPostsByYear, 

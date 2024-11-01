@@ -7,6 +7,7 @@ router
     .get('/topModels/', modelsController.getTopModels)
     .get('/topModelsByViews/', modelsController.getTopModelsByViews)
     .get('/topModelsByCategory/', modelsController.getTopModelsByCategory)
+    .get('/groupedCategory', modelsController.getGroupedCategory)
     .get('/', modelsController.get)
     .get('/:id', modelsController.getById)
     .get('/withUser/:id', modelsController.getByIdWithUser)

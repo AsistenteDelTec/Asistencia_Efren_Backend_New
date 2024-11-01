@@ -111,7 +111,14 @@ class ModelsService {
     }    
   }
 
-  async find({ page = 1, limit = 10000, search = '', category, status='Accepted', privated=false }) {
+  async find() {
+    const res = await models.Models.findAll({
+      order: [['id', 'ASC']]
+    });
+    return res;
+  }
+
+  async findPages({ page = 1, limit = 10000, search = '', category, status='Accepted', privated=false }) {
     try {
       console.log("Categoria recibida: ", category)
       const offset = (page - 1) * limit;
@@ -170,8 +177,7 @@ class ModelsService {
       console.error('Error fetching data with pagination:', error);
       throw error;
     }
-  }
-  
+  }  
 
   async findOne(id) {
     const res = await models.Models.findByPk(id);

@@ -7,6 +7,7 @@ router
     .get('/topDatasetsByViews/', datasetsController.getTopDatasetsByViews)
     .get('/topDatasetsByCategory/', datasetsController.getTopDatasetsByCategory)
     .get('/groupedCategory', datasetsController.getGroupedCategory)
+    .get('/GetWithPagination', datasetsController.getWithPagination)
     .get('/', datasetsController.get)
     .get('/:id', datasetsController.getById)
     .get('/withUser/:id', datasetsController.getByIdWithUser)

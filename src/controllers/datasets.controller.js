@@ -179,6 +179,16 @@ const getTopDatasetsByCategory = async (req, res) => {
     }
 };
 
+async function getWithPagination(req, res, next) {
+    try {
+      const { page, limit, search, category, status, privated } = req.query;
+      const result = await service.findWithPagination({ page, limit, search, category, status, privated });
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+};
+
 const update = async (req, res) => {
     try {
         const { id } = req.params;
@@ -249,4 +259,5 @@ module.exports = {
     getTopDatasetsByCategory,
     getTopDatasetsByViews,
     getTopDatasets,
+    getWithPagination,
 };

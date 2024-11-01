@@ -124,6 +124,61 @@ class DatasetsService {
         }
     }
 
+    async findWithPagination({ page = 1, limit = 12, search = '', category, status='Accepted', privated=false }) {
+      try {
+        console.log("Categoria recibida: ", category)
+        const offset = (page - 1) * limit;
+  
+        // Condiciones del where principal
+        const whereConditions = {
+          [Op.and]: [
+            { dataset_name: { [Op.iLike]: `%${search}%`} }, // Filtrar por nombre del modelo
+            { status },                      // Solo modelos con status 'Accepted'
+            { privated }                          // Solo modelos que no sean privados
+          ]
+        };
+  
+        // Si hay un category, agregarlo a las condiciones del where
+        if (category) {
+          whereConditions[Op.and].push(
+            Sequelize.literal(`EXISTS (SELECT 1 FROM "relationship_dataset_category" AS "RelationshipDatasetCategory" WHERE "RelationshipDatasetCategory"."id_dataset" = "Datasets"."id" AND "RelationshipDatasetCategory"."id_category" = ${category})`)
+          );
+        }
+    
+        const res = await models.Datasets.findAndCountAll({
+          include: [
+            {
+              model: models.Categories,
+              as: 'category',
+              where: { visible: true},   // Filtra por categorías visibles
+              required:false
+            },
+            {
+              model: models.Users,
+              as: 'user',
+              attributes: ['fullname'],
+            },
+          ],
+          
+          where:whereConditions,
+          limit, // Limita los resultados devueltos
+          offset, // Define desde qué registro iniciar
+          order: [['id', 'ASC']],
+          distinct: true  // Asegura que el conteo sea de modelos únicos, no duplicados por las categorías
+        });
+        
+        return {
+          totalItems: res.count,
+          totalPages: Math.ceil(res.count / limit),
+          currentPage: page,
+          datasets: res.rows,  // Modelos devueltos
+        };
+      } catch (error) {
+        console.error('Error fetching data with pagination:', error);
+        throw error;
+      }
+}
+
     async findOne(id) {
         const res = await models.Datasets.findByPk(id);
         return res;

@@ -1,8 +1,6 @@
-const { models } = require('../libs/sequelize'); // Assuming models is correctly set up with Sequelize
-const { Op } = require('sequelize');
+const { models } = require('../libs/sequelize');
 
 class CommentModelService {
-  // Create a comment for a specific model
   async create(data) {
     const { id_user, id_model, comment } = data;
 
@@ -21,7 +19,6 @@ class CommentModelService {
     }
   }
 
-  // Get all comments for a model
   async findByModel(id_model) {
     try {
       const comments = await models.CommentModel.findAll({
@@ -30,12 +27,12 @@ class CommentModelService {
         },
         include: [
           {
-            model: models.Users, // Assuming you have the user model set up correctly
+            model: models.Users, 
             as: 'user',
             attributes: ['fullname'],
           }
         ],
-        order: [['id', 'ASC']], // Order by comment id or any other logic
+        order: [['id', 'ASC']],
       });
       return comments;
     } catch (error) {
@@ -44,7 +41,6 @@ class CommentModelService {
     }
   }
 
-  // Get all comments made by a user
   async findByUser(id_user) {
     try {
       const comments = await models.CommentModel.findAll({
@@ -55,10 +51,10 @@ class CommentModelService {
           {
             model: models.Models,
             as: 'model',
-            attributes: ['model_name'], // Adjust according to the model fields you want
+            attributes: ['model_name'], 
           }
         ],
-        order: [['id', 'ASC']], // Order by comment id or any other logic
+        order: [['id', 'ASC']],
       });
       return comments;
     } catch (error) {
@@ -67,7 +63,6 @@ class CommentModelService {
     }
   }
 
-  // Update a comment (like or dislike)
   async update(id, data) {
     const { likes, dislikes } = data.body;
 
@@ -77,11 +72,10 @@ class CommentModelService {
         throw new Error('Comment not found');
       }
 
-      // Only update likes or dislikes if they are provided
       if (likes !== undefined) comment.likes = likes;
       if (dislikes !== undefined) comment.dislikes = dislikes;
 
-      await comment.save(); // Save the updated comment
+      await comment.save();
 
       return { success: true, data: comment };
     } catch (error) {
@@ -90,7 +84,6 @@ class CommentModelService {
     }
   }
 
-  // Delete a comment
   async delete(id) {
     try {
       const comment = await models.CommentModel.findByPk(id);
@@ -98,7 +91,7 @@ class CommentModelService {
         throw new Error('Comment not found');
       }
 
-      await comment.destroy(); // Delete the comment
+      await comment.destroy(); 
       return { success: true, message: 'Comment deleted successfully' };
     } catch (error) {
       console.error("Error deleting comment", error.message);
@@ -106,7 +99,6 @@ class CommentModelService {
     }
   }
 
-  // Get the total count of comments for a model
   async countCommentsForModel(id_model) {
     try {
       const count = await models.CommentModel.count({
@@ -121,7 +113,6 @@ class CommentModelService {
     }
   }
 
-  // Get the total count of comments for a user
   async countCommentsForUser(id_user) {
     try {
       const count = await models.CommentModel.count({

@@ -2,11 +2,13 @@ const DatasetsService = require('../services/datasets.services');
 const RelationshipDatasetUrlPaperService = require('../services/relationship_dataset_url_paper.services'); 
 const RelationshipDatasetCategory = require('../services/relationship_dataset_category.services');
 const RelationshipUserDataset = require('../services/relationship_user_dataset.services');
+const CommentService = require('../services/comment_dataset.services');
 
 const service = new DatasetsService();
 const relationshipDatasetUrlPaperService = new RelationshipDatasetUrlPaperService();
 const relationshipDatasetCategoryService = new RelationshipDatasetCategory();
 const relationshipUserDataset = new RelationshipUserDataset();
+const commentServices = new CommentService();
 
 const create = async (req, res) => {
     try {
@@ -248,6 +250,48 @@ async function getWithPagination(req, res, next) {
     }
 };
 
+const getComments = async (req, res) => {
+    try{
+        const datasetId = req.params.id;
+        const comments = await commentServices.findByDataset(datasetId);
+        res.status(200).json({success: true, comments});
+    }catch(error){
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
+const createComment = async (req, res) => {
+    try {
+        const { id_user, comment } = req.body; 
+        const { id } = req.params; //id_dataset
+
+        const commentData = {
+            id_user,
+            id_dataset: id,  // Assign id from params to id_dataset
+            comment
+        };
+
+        const result = await commentServices.create(commentData); 
+
+        res.status(201).json({ success: true, data: result.data, message: 'Comment added successfully' });
+    } catch (error) {
+        console.error('Error adding comment:', error.message);
+        res.status(500).json({ success: false, message: error.message || 'Error adding comment' });
+    }
+};
+
+const deleteComment = async (req, res) => {
+    try{
+        const { id } = req.params; //id_dataset
+        const result = await commentServices.delete(id); 
+
+        res.status(201).json({ success: true, data: result.data, message: 'Comment deleted successfully' });
+    }catch(error){
+        console.error('Error deleting comment:', error.message);
+        res.status(500).json({ success: false, message: error.message || 'Error deleting comment' });
+    }
+}
+
 const update = async (req, res) => {
     try {
         const { id } = req.params;
@@ -368,4 +412,7 @@ module.exports = {
     getTopDatasetsByViews,
     getTopDatasets,
     getWithPagination,
+    createComment,
+    getComments,
+    deleteComment,
 };

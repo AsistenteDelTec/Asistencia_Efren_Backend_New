@@ -1,23 +1,23 @@
-const CommentModelService = require('../services/comment_model.services'); 
+const CommentDatasetService = require('../services/comment_dataset.services');
 
-class CommentModelController {
+class CommentDatasetController {
   async create(req, res, next) {
     try {
-      const commentData = await CommentModelService.create(req); 
+      const commentData = await CommentDatasetService.create(req); 
       return res.status(201).json({
         success: true,
         message: 'Comment created successfully',
         data: commentData.data,
       });
     } catch (error) {
-      next(error); 
+      next(error);
     }
   }
 
-  async findByModel(req, res, next) {
+  async findByDataset(req, res, next) {
     try {
-      const { id_model } = req.params; 
-      const comments = await CommentModelService.findByModel(id_model);
+      const { id_dataset } = req.params; 
+      const comments = await CommentDatasetService.findByDataset(id_dataset);
       return res.status(200).json({
         success: true,
         data: comments,
@@ -30,7 +30,7 @@ class CommentModelController {
   async findByUser(req, res, next) {
     try {
       const { id_user } = req.params; 
-      const comments = await CommentModelService.findByUser(id_user);
+      const comments = await CommentDatasetService.findByUser(id_user);
       return res.status(200).json({
         success: true,
         data: comments,
@@ -43,7 +43,7 @@ class CommentModelController {
   async update(req, res, next) {
     try {
       const { id } = req.params; 
-      const updatedComment = await CommentModelService.update(id, req);
+      const updatedComment = await CommentDatasetService.update(id, req);
       return res.status(200).json({
         success: true,
         message: 'Comment updated successfully',
@@ -57,7 +57,7 @@ class CommentModelController {
   async delete(req, res, next) {
     try {
       const { id } = req.params; 
-      const response = await CommentModelService.delete(id);
+      const response = await CommentDatasetService.delete(id);
       return res.status(200).json({
         success: true,
         message: response.message,
@@ -67,10 +67,10 @@ class CommentModelController {
     }
   }
 
-  async countCommentsForModel(req, res, next) {
+  async countCommentsForDataset(req, res, next) {
     try {
-      const { id_model } = req.params;
-      const count = await CommentModelService.countCommentsForModel(id_model);
+      const { id_dataset } = req.params;
+      const count = await CommentDatasetService.countCommentsForDataset(id_dataset);
       return res.status(200).json({
         success: true,
         count: count.count,
@@ -83,7 +83,7 @@ class CommentModelController {
   async countCommentsForUser(req, res, next) {
     try {
       const { id_user } = req.params;
-      const count = await CommentModelService.countCommentsForUser(id_user);
+      const count = await CommentDatasetService.countCommentsForUser(id_user);
       return res.status(200).json({
         success: true,
         count: count.count,
@@ -94,4 +94,4 @@ class CommentModelController {
   }
 }
 
-module.exports = new CommentModelController();
+module.exports = new CommentDatasetController();

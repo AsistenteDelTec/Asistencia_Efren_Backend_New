@@ -2,7 +2,6 @@ const express = require('express')
 const router = express.Router();
 const modelsController = require('../controllers/models.controller');
 
-//Router de modelos
 router
     .get('/topModels/', modelsController.getTopModels)
     .get('/topModelsByViews/', modelsController.getTopModelsByViews)

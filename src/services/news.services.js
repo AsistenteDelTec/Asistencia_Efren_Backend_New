@@ -15,13 +15,13 @@ class NewsService {
     async create(data) {
         const newsData = {
             news_name: data.body.news_name,
-            publish_date: data.body.publish_date,
+            publish_date: new Date(),
             small_description: data.body.small_description,
             large_description: data.body.large_description,
             url_new: data.body.url_new,
-            score: data.body.score,
-            cont_views: data.body.cont_views,
-            status: data.body.status
+            score: 0,
+            cont_views: 0,
+            status: 'Accepted',
         };
 
         const res = await models.News.create(newsData);

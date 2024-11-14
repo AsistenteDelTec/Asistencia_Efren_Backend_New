@@ -114,6 +114,65 @@ const getById = async (req, res) => {
     }
 }
 
+const getDatasetWithDetails = async (dataset) => {
+    const userRelationship = await relationshipUserDataset.findUser(dataset.id);
+    const papersRelationship = await relationshipDatasetUrlPaperService.getUrls(dataset.id);
+    const categoriesRelationship = await relationshipDatasetCategoryService.findMyCategories(dataset.id);
+
+    const user = userRelationship ? {
+        date_joined: userRelationship.date_joined,
+        email: userRelationship.userFound.email,
+        fullname: userRelationship.userFound.fullname,
+        user_role: userRelationship.userFound.user_role,
+        username: userRelationship.userFound.username,
+        verified: userRelationship.userFound.verified,
+    } : null;
+
+    const papers = papersRelationship ? papersRelationship.map(paper => ({
+        url: paper.url,
+    })) : [];
+
+    const categories = categoriesRelationship ? categoriesRelationship.map(category => ({
+        category_name: category.categories_name,
+        visible: category.visible,
+    })) : [];
+
+    const datasetInfo = {
+        id: dataset.id,
+        dataset_name: dataset.dataset_name,
+        cont_views: dataset.cont_views,
+        description: dataset.description,
+        privated: dataset.privated,
+        publish_date: dataset.publish_date,
+        score: dataset.score,
+        status: dataset.status,
+        url_source: dataset.url_source,
+        version: dataset.version,
+        user: user || null, 
+        papers: papers || [], 
+        categories: categories || [], 
+    };
+
+    return {
+        dataset: datasetInfo, 
+    };
+};
+
+const getByStatus = async (req, res) => {
+    const { status } = req.query;
+    if (!status) {
+        return res.status(400).json({ success: false, message: 'Status is required' });
+    }
+
+    try {
+        const datasets = await service.findByStatus(status); 
+        const datasetsWithDetails = await Promise.all(datasets.map(getDatasetWithDetails));console.log("res...",datasetsWithDetails)
+        res.json({ success: true, datasets: datasetsWithDetails });
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
+
 const getByIdWithUser = async (req, res) => {
     try {
         const { id } = req.params;
@@ -131,7 +190,7 @@ const getByIdWithUser = async (req, res) => {
             papers: papers.map(paper => paper.url),
             categories,
             user: user ? user.userFound : null
-        };
+        };console.log(response)
 
         res.json({
             success: true,
@@ -194,6 +253,54 @@ const update = async (req, res) => {
         const { id } = req.params;
         const body = req.body;
         const response = await service.update(id, body);
+
+        // Obtiene información extra del dataset
+        const datasetExtraData = {
+            user_id: body.user_id,
+            datasets: body.url_datasets,
+            papers: body.url_papers,
+            categories: body.categories,
+        };
+
+        // Actualiza lista de papers si es necesario
+        if (datasetExtraData.papers && datasetExtraData.papers.length > 0) {
+            try {
+            // Elimina relaciones anteriores
+            await relationshipDatasetUrlPaperService.deleteUrlsByDatasetId(dataset.id);
+            // Agrega nuevas relaciones
+            await Promise.all(
+                datasetExtraData.papers.map(async (paperUrl) => {
+                await relationshipDatasetUrlPaperService.addUrl(dataset.id, paperUrl);
+                })
+            );
+            } catch (error) {
+            console.error('Error adding paper URLs:', error);
+            throw new Error('Error adding paper URLs');
+            }
+        }
+
+        // Actualiza lista de categorías si es necesario
+        if (datasetExtraData.categories && datasetExtraData.categories.length > 0) {
+            try {
+            // Elimina relaciones anteriores
+            await relationshipDatasetCategoryService.deleteByDatasetID(dataset.id);
+            // Agrega nuevas relaciones
+            await Promise.all(
+                datasetExtraData.categories.map(async (category) => {
+                await relationshipDatasetCategoryService.create({
+                    body: {
+                    id_dataset: dataset.id,
+                    id_category: category.id,
+                    }
+                });
+                })
+            );
+            } catch (error) {
+            console.error('Error adding categories:', error);
+            throw new Error('Error adding categories');
+            }
+        }
+
         if (!response) {
             return res.status(404).send({ success: false, message: 'No se pudo actualizar el dataset' });
         }
@@ -251,6 +358,7 @@ module.exports = {
     getById, 
     getByIdWithUser, 
     getPostsByYear, 
+    getByStatus,
     update, 
     _delete, 
     addPaperUrl, 

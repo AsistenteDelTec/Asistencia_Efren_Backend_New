@@ -4,7 +4,9 @@ const newsController = require('../controllers/news.controller');
 
 router
     .get('/', newsController.get)
+    .get('/getAllWithUser', newsController.getAllWithUser)
     .get('/:id', newsController.getById)
+    .get('/withUser/:id', newsController.getWithUser)
     .get('/newsByYear/:year', newsController.getPostsByYear)
     .post('/', newsController.create)
     .put('/:id', newsController.update)

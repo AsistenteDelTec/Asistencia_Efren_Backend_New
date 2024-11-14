@@ -17,6 +17,7 @@ const { RelationshipDatasetCategory, RelationshipDatasetCategorySchema} = requir
 const { RelationshipModelUrlDataset, RelationshipModelUrlDatasetSchema } = require('./relationship_model_url_dataset.model');
 const { RelationshipModelUrlPaper, RelationshipModelUrlPaperSchema } = require('./relationship_model_url_paper.model');
 const { RelationshipDatasetUrlPaper, RelationshipDatasetUrlPaperSchema } = require('./relationship_dataset_url_paper.model');
+const { CommentModel, CommentModelSchema } = require('./comment_model.model');
 
 function setupModels(sequelize) {
     Users.init(UsersSchema, Users.config(sequelize));
@@ -38,7 +39,8 @@ function setupModels(sequelize) {
     RelationshipModelUrlDataset.init(RelationshipModelUrlDatasetSchema, RelationshipModelUrlDataset.config(sequelize)); 
     RelationshipModelUrlPaper.init(RelationshipModelUrlPaperSchema, RelationshipModelUrlPaper.config(sequelize)); 
     RelationshipDatasetUrlPaper.init(RelationshipDatasetUrlPaperSchema, RelationshipDatasetUrlPaper.config(sequelize)); 
-    
+    CommentModel.init(CommentModelSchema, CommentModel.config(sequelize));
+
     // Definir relaciones
     Users.hasMany(ListFollowUsers, { foreignKey: 'id_user' });
     ListFollowUsers.belongsTo(Users, { foreignKey: 'id_user' });
@@ -170,6 +172,9 @@ function setupModels(sequelize) {
     RelationshipModelUrlPaper.belongsTo(Models, { foreignKey: 'model_id' });
 
     RelationshipDatasetUrlPaper.belongsTo(Datasets, { foreignKey: 'dataset_id' });
+
+    CommentModel.belongsTo(Users, { foreignKey: 'id_user', as: 'user' });
+    CommentModel.belongsTo(Models, { foreignKey: 'id_model' });
 }
 
 module.exports = setupModels;

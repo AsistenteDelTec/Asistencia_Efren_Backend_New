@@ -1,21 +1,8 @@
 const { models } = require('../libs/sequelize');
 const { Op, fn, col, Sequelize } = require('sequelize');
-const RelationshipUserDataset = require('./relationship_user_dataset.services');
-const ListFollowUsersService = require('./list_follow_users.services');
-const NotificationsService = require('./notifications.services');
-const RelationshipDatasetUrlPaperService = require('./relationship_dataset_url_paper.services'); 
-const RelationshipDatasetCategoryService = require('./relationship_dataset_category.services'); 
-const { getIo } = require('../config/socket');
 
 class DatasetsService {
-    constructor() {
-        this.listFollowUsersService = new ListFollowUsersService();
-        this.relationshipUserDataset = new RelationshipUserDataset();
-        this.notificationsService = new NotificationsService();
-        this.paperUrlService = new RelationshipDatasetUrlPaperService(); 
-        this.relationshipDatasetCategory = new RelationshipDatasetCategoryService();
-    }
-
+    
     async create(data) {
         const datasetData = {
             dataset_name: data.body.dataset_name,
@@ -236,15 +223,7 @@ class DatasetsService {
             ...userFields,
             ...adminFields,
         };
-    
-        // Obtiene información extra del dataset
-        const datasetExtraData = {
-            user_id: data.user_id,
-            datasets: data.url_datasets,
-            papers: data.url_papers,
-            categories: data.categories,
-        };
-    
+       
         // Se excluyen los campos vacíos
         Object.keys(updatedDatasetData).forEach(key => {
             if (updatedDatasetData[key] === undefined) {
@@ -256,44 +235,6 @@ class DatasetsService {
             // Se actualiza el dataset con solo los campos que sí llevan cambios
             await dataset.update(updatedDatasetData);
 
-            // Actualiza lista de papers si es necesario
-            if (datasetExtraData.papers && datasetExtraData.papers.length > 0) {
-                try {
-                // Elimina relaciones anteriores
-                await this.paperUrlService.deleteUrlsByDatasetId(dataset.id);
-                // Agrega nuevas relaciones
-                await Promise.all(
-                    datasetExtraData.papers.map(async (paperUrl) => {
-                    await this.paperUrlService.addUrl(dataset.id, paperUrl);
-                    })
-                );
-                } catch (error) {
-                console.error('Error adding paper URLs:', error);
-                throw new Error('Error adding paper URLs');
-                }
-            }
-
-            // Actualiza lista de categorías si es necesario
-            if (datasetExtraData.categories && datasetExtraData.categories.length > 0) {
-                try {
-                // Elimina relaciones anteriores
-                await this.relationshipDatasetCategory.deleteByDatasetID(dataset.id);
-                // Agrega nuevas relaciones
-                await Promise.all(
-                    datasetExtraData.categories.map(async (category) => {
-                    await this.relationshipDatasetCategory.create({
-                        body: {
-                        id_dataset: dataset.id,
-                        id_category: category.id,
-                        }
-                    });
-                    })
-                );
-                } catch (error) {
-                console.error('Error adding categories:', error);
-                throw new Error('Error adding categories');
-                }
-            }
             return { success: true, data: dataset };
         } catch (error) {
             console.error("Error updating dataset", error.message);
@@ -340,6 +281,22 @@ class DatasetsService {
         return topDatasets;
     }
 
+    async findByStatus(status) {
+        try {
+          const datasetsByStatus = await models.Datasets.findAll({
+            where: {
+              status,
+            },
+            order: [['id', 'ASC']],
+          });
+      
+          return datasetsByStatus;
+        } catch (error) {
+          console.error(`Error fetching datasets with status ${status}:`, error);
+          throw error;
+        }
+      }
+
     async getTopDatasetsByCategory() {
     try {
         // First, find all categories
@@ -352,7 +309,7 @@ class DatasetsService {
         // For each category, fetch the top 3 datasets based on cont_views
         const topDatasetsByCategory = await Promise.all(categories.map(async (category) => {
         const topDatasets = await models.Datasets.findAll({
-            attributes: ['id', 'dataset_name', 'cont_views'],
+            attributes: ['id', 'dataset_name', 'cont_views', 'description'],
             include: [
             {
                 model: models.Categories, // Junction table to link categories with models

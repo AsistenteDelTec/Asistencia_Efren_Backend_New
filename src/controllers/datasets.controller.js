@@ -297,6 +297,7 @@ const update = async (req, res) => {
         const { id } = req.params;
         const body = req.body;
         const response = await service.update(id, body);
+        const dataset = response.data.dataValues;
 
         // Obtiene información extra del dataset
         const datasetExtraData = {
